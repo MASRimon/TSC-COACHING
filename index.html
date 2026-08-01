@@ -37,16 +37,13 @@
       top: 0;
       z-index: 100;
     }
-    header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.3px; }
+    header h1 { font-size: 1.4rem; font-weight: 700; }
     header p { font-size: 0.85rem; opacity: 0.9; margin-top: 2px; }
     .container { max-width: 1140px; margin: 0 auto; padding: 1.4rem; }
-    .tabs {
-      display: flex; gap: 0.45rem; margin-bottom: 1.4rem; flex-wrap: wrap;
-    }
+    .tabs { display: flex; gap: 0.45rem; margin-bottom: 1.4rem; flex-wrap: wrap; }
     .tab-btn {
       padding: 0.55rem 1.15rem; border-radius: 999px; border: 1px solid var(--border);
-      background: white; color: var(--muted); cursor: pointer; font-weight: 600;
-      font-size: 0.9rem; transition: all 0.2s;
+      background: white; color: var(--muted); cursor: pointer; font-weight: 600; font-size: 0.9rem;
     }
     .tab-btn:hover { border-color: var(--primary); color: var(--primary); }
     .tab-btn.active {
@@ -63,13 +60,11 @@
     .form-group { flex: 1; min-width: 170px; }
     .form-group label {
       display: block; font-size: 0.82rem; font-weight: 600;
-      color: var(--muted); margin-bottom: 0.35rem; text-transform: uppercase;
-      letter-spacing: 0.4px;
+      color: var(--muted); margin-bottom: 0.35rem; text-transform: uppercase; letter-spacing: 0.4px;
     }
     input, select {
       width: 100%; padding: 0.6rem 0.8rem; border: 1.5px solid var(--border);
-      border-radius: 10px; font-size: 0.95rem; transition: border 0.2s, box-shadow 0.2s;
-      background: #fff;
+      border-radius: 10px; font-size: 0.95rem; background: #fff;
     }
     input:focus, select:focus {
       outline: none; border-color: var(--primary);
@@ -78,16 +73,13 @@
     .chip-group { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 0.4rem; }
     .chip {
       padding: 0.4rem 0.9rem; border: 1.5px solid var(--border); border-radius: 999px;
-      font-size: 0.85rem; cursor: pointer; background: white; transition: all 0.15s;
-      font-weight: 500;
+      font-size: 0.85rem; cursor: pointer; background: white; font-weight: 500;
     }
     .chip:hover { border-color: var(--primary); color: var(--primary); }
-    .chip.selected {
-      background: var(--primary); color: white; border-color: var(--primary);
-    }
+    .chip.selected { background: var(--primary); color: white; border-color: var(--primary); }
     .btn {
       padding: 0.55rem 1.15rem; border: none; border-radius: 10px;
-      font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: all 0.2s;
+      font-weight: 600; cursor: pointer; font-size: 0.9rem;
       display: inline-flex; align-items: center; gap: 0.35rem;
     }
     .btn-primary { background: var(--primary); color: white; }
@@ -95,7 +87,6 @@
     .btn-success { background: var(--success); color: white; }
     .btn-danger { background: var(--danger); color: white; }
     .btn-outline { background: white; border: 1.5px solid var(--border); color: var(--text); }
-    .btn-outline:hover { background: #f8fafc; }
     .btn-sm { padding: 0.32rem 0.7rem; font-size: 0.8rem; border-radius: 8px; }
     .search-box { display: flex; gap: 0.5rem; margin-bottom: 1.1rem; flex-wrap: wrap; }
     .search-box input { max-width: 280px; flex: 1; }
@@ -139,7 +130,6 @@
       border-radius: 50%; font-size: 1.3rem; cursor: pointer; color: var(--muted);
       display: flex; align-items: center; justify-content: center;
     }
-    .close-btn:hover { background: #e2e8f0; }
     .month-card {
       border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem;
       background: #f8fafc; margin-bottom: 1rem;
@@ -179,8 +169,7 @@
       box-shadow: 0 10px 25px rgba(0,0,0,0.2);
     }
     .toast.show { opacity: 1; }
-    .loading { text-align: center; padding: 2.5rem; color: var(--muted); font-weight: 500; }
-    .empty { text-align: center; padding: 2.5rem; color: var(--muted); }
+    .loading, .empty { text-align: center; padding: 2.5rem; color: var(--muted); font-weight: 500; }
     @media (max-width: 600px) {
       .form-group { min-width: 100%; }
       .pay-input { width: 100%; }
@@ -228,15 +217,21 @@
       </div>
     </div>
 
-    <!-- MONTH VIEW - All students for selected month -->
+    <!-- MONTH VIEW (Batch-wise) -->
     <div id="tab-monthview" class="tab-content" style="display:none">
       <div class="card">
-        <h2>Month-wise Student List</h2>
-        <div class="info-box">Select a month to see every student's payment status for that month.</div>
+        <h2>Month View — Batch Wise</h2>
+        <div class="info-box">Select a month and batch to see all students of that batch with their payment status for the selected month.</div>
         <div class="form-row">
-          <div class="form-group" style="max-width:280px">
+          <div class="form-group" style="max-width:260px">
             <label>Select Month</label>
             <select id="monthViewSelect" onchange="renderMonthView()"></select>
+          </div>
+          <div class="form-group" style="max-width:220px">
+            <label>Select Batch</label>
+            <select id="batchViewSelect" onchange="renderMonthView()">
+              <option value="all">All Batches</option>
+            </select>
           </div>
         </div>
         <div class="stat-grid" id="monthViewStats"></div>
@@ -245,13 +240,13 @@
             <thead>
               <tr>
                 <th>ID</th><th>Name</th><th>College</th><th>Batch</th>
-                <th>English</th><th>ICT</th><th>Total Due</th><th></th>
+                <th>English</th><th>ICT</th><th>Due (This Month)</th><th></th>
               </tr>
             </thead>
             <tbody id="monthViewBody"></tbody>
           </table>
         </div>
-        <div id="monthViewEmpty" class="empty" style="display:none">No students</div>
+        <div id="monthViewEmpty" class="empty" style="display:none">No students in this batch</div>
       </div>
     </div>
 
@@ -359,9 +354,7 @@
         </div>
       </div>
       <div class="card">
-        <div class="info-box">
-          Data is stored in Firebase Cloud. Same data is available on phone and computer. Free tier.
-        </div>
+        <div class="info-box">Data is stored in Firebase Cloud. Same data is available on phone and computer. Free tier.</div>
       </div>
     </div>
   </div>
@@ -465,7 +458,11 @@
         if (btn.dataset.tab === 'settings') { loadFeeInputs(); renderCollegeList(); renderBatchList(); }
         if (btn.dataset.tab === 'add') { renderCollegeChips(); renderBatchChips(); }
         if (btn.dataset.tab === 'summary') { populateMonthSelect('summaryMonth'); renderSummary(); }
-        if (btn.dataset.tab === 'monthview') { populateMonthSelect('monthViewSelect'); renderMonthView(); }
+        if (btn.dataset.tab === 'monthview') {
+          populateMonthSelect('monthViewSelect');
+          populateBatchSelect();
+          renderMonthView();
+        }
         if (btn.dataset.tab === 'students') renderStudents();
       });
     });
@@ -625,9 +622,17 @@
 
     function populateMonthSelect(selectId) {
       const sel = document.getElementById(selectId);
+      if (!sel) return;
       sel.innerHTML = MONTHS.map((m, i) =>
         `<option value="${m.key}" ${i === 0 ? 'selected' : ''}>${m.label}</option>`
       ).join('');
+    }
+
+    function populateBatchSelect() {
+      const sel = document.getElementById('batchViewSelect');
+      if (!sel) return;
+      sel.innerHTML = `<option value="all">All Batches</option>` +
+        data.batches.map(b => `<option value="${b}">${b}</option>`).join('');
     }
 
     function getMonthStats(monthKey) {
@@ -671,30 +676,48 @@
       return `<span class="badge badge-paid">Paid</span>`;
     }
 
-    // ===== MONTH VIEW (all students for selected month) =====
     function renderMonthView() {
       const monthKey = document.getElementById('monthViewSelect').value;
+      const batchFilter = document.getElementById('batchViewSelect').value;
       const stats = getMonthStats(monthKey);
 
+      let list = stats.allStudents;
+      if (batchFilter && batchFilter !== 'all') {
+        list = list.filter(s => (s.batch || '') === batchFilter);
+      }
+
+      let expected = 0, collected = 0, dueTotal = 0;
+      list.forEach(s => {
+        dueTotal += s.due;
+        SUBJECTS.forEach(sub => {
+          if (s.detail[sub]) {
+            expected += s.detail[sub].fee;
+            collected += Math.min(s.detail[sub].paid, s.detail[sub].fee);
+          }
+        });
+      });
+
       document.getElementById('monthViewStats').innerHTML = `
-        <div class="stat-card expected"><div class="label">Expected</div><div class="value">${stats.expected} ৳</div></div>
-        <div class="stat-card collected"><div class="label">Collected</div><div class="value">${stats.collected} ৳</div></div>
-        <div class="stat-card due"><div class="label">Due</div><div class="value">${stats.due} ৳</div></div>
-        <div class="stat-card"><div class="label">Students</div><div class="value">${stats.allStudents.length}</div></div>
+        <div class="stat-card expected"><div class="label">Expected</div><div class="value">${expected} ৳</div></div>
+        <div class="stat-card collected"><div class="label">Collected</div><div class="value">${collected} ৳</div></div>
+        <div class="stat-card due"><div class="label">Due</div><div class="value">${dueTotal} ৳</div></div>
+        <div class="stat-card"><div class="label">Students</div><div class="value">${list.length}</div></div>
       `;
 
       const tbody = document.getElementById('monthViewBody');
       const empty = document.getElementById('monthViewEmpty');
-      if (stats.allStudents.length === 0) {
-        tbody.innerHTML = ''; empty.style.display = 'block'; return;
+      if (list.length === 0) {
+        tbody.innerHTML = '';
+        empty.style.display = 'block';
+        return;
       }
       empty.style.display = 'none';
-      tbody.innerHTML = stats.allStudents.map(s => `
+      tbody.innerHTML = list.map(s => `
         <tr>
           <td><strong>${s.id}</strong></td>
           <td>${s.name}</td>
           <td>${s.college || '—'}</td>
-          <td>${s.batch || '—'}</td>
+          <td><span class="badge badge-batch">${s.batch || '—'}</span></td>
           <td>${statusBadge(s.detail.English)}</td>
           <td>${statusBadge(s.detail.ICT)}</td>
           <td>${s.due > 0 ? `<span class="badge badge-due">${s.due} ৳</span>` : `<span class="badge badge-paid">0</span>`}</td>
@@ -752,7 +775,8 @@
       let totalPaid = 0;
       MONTHS.forEach(m => (s.subjects || []).forEach(sub => totalPaid += (s.payments?.[m.key]?.[sub]) || 0));
       document.getElementById('modalSummary').innerHTML =
-        `Paid: <b style="color:var(--success)">${totalPaid} ৳</b> &nbsp;|&nbsp; Due: <b style="color:var(--danger)">${totalDue} ৳</b>`;
+        `Year Paid: <b style="color:var(--success)">${totalPaid} ৳</b> &nbsp;|&nbsp; Year Due: <b style="color:var(--danger)">${totalDue} ৳</b><br>
+        <small style="color:#64748b">Each month below shows its own Due. Enter amount or click Full.</small>`;
       document.getElementById('monthGrid').innerHTML = MONTHS.map(m => {
         const rows = (s.subjects || []).map(sub => {
           const fee = data.fees[sub] || 0;
