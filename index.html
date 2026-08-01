@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TSC Coaching - Fee Management</title>
+  <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
+  <style>
+    :root {
+      --primary:#1a73e8; --primary-dark:#1557b0; --success:#0d904f;
+      --danger:#d93025; --warning:#f9ab00; --bg:#f8f9fa; --card:#fff;
+      --border:#dadce0; --text:#202124; --muted:#5f6368;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh}
+    header{background:linear-gradient(135deg,#1a73e8,#0d47a1);color:#fff;padding:1rem 1.5rem;position:sticky;top:0;z-index:100}
+    header h1{font-size:1.35rem} header p{font-size:.85rem;opacity:.9}
+    .container{max-width:1100px;margin:0 auto;padding:1.25rem}
+    .tabs{display:flex;gap:.5rem;margin-bottom:1.25rem;flex-wrap:wrap}
+    .tab-btn{padding:.5rem 1rem;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--muted);cursor:pointer;font-weight:500}
+    .tab-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .card{background:var(--card);border-radius:12px;padding:1.25rem;border:1px solid var(--border);margin-bottom:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+    .card h2{font-size:1.1rem;margin-bottom:1rem}
+    .form-row{display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1rem}
+    .form-group{flex:1;min-width:160px}
+    .form-group label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:.3rem}
+    input,select{width:100%;padding:.55rem .7rem;border:1px solid var(--border);border-radius:8px;font-size:.95rem}
+    .chip-group{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.35rem}
+    .chip{padding:.35rem .8rem;border:1.5px solid var(--border);border-radius:20px;font-size:.85rem;cursor:pointer;background:#fff}
+    .chip.selected{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .btn{padding:.5rem 1rem;border:none;border-radius:8px;font-weight:500;cursor:pointer;font-size:.9rem}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-success{background:var(--success);color:#fff}
+    .btn-danger{background:var(--danger);color:#fff}
+    .btn-outline{background:#fff;border:1px solid var(--border)}
+    .btn-sm{padding:.3rem .65rem;font-size:.8rem}
+    .search-box{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}
+    .search-box input{max-width:260px;flex:1}
+    table{width:100%;border-collapse:collapse;font-size:.9rem}
+    th,td{padding:.6rem .7rem;text-align:left;border-bottom:1px solid var(--border)}
+    th{background:#f1f3f4;font-size:.78rem;color:var(--muted);text-transform:uppercase}
+    .badge{display:inline-block;padding:.15rem .5rem;border-radius:20px;font-size:.72rem;font-weight:600}
+    .badge-paid{background:#e6f4ea;color:#0d904f}
+    .badge-due{background:#fce8e6;color:#d93025}
+    .badge-partial{background:#fef7e0;color:#b06000}
+    .badge-college{background:#f3e8fd;color:#7627bb}
+    .badge-batch{background:#e8f0fe;color:#174ea6}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:1rem}
+    .modal-overlay.show{display:flex}
+    .modal{background:#fff;border-radius:14px;width:100%;max-width:800px;max-height:90vh;overflow-y:auto}
+    .modal-header{padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff}
+    .modal-body{padding:1.25rem}
+    .close-btn{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--muted)}
+    .month-card{border:1px solid var(--border);border-radius:10px;padding:1rem;background:#fafafa;margin-bottom:1rem}
+    .month-card h4{color:var(--primary);margin-bottom:.7rem}
+    .subject-row{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;padding:.5rem 0;border-bottom:1px dashed #e0e0e0}
+    .subject-row:last-child{border-bottom:none}
+    .pay-input{width:90px;padding:.35rem .5rem;border:1px solid var(--border);border-radius:6px}
+    .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.8rem;margin-bottom:1.2rem}
+    .stat-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:.9rem;text-align:center}
+    .stat-card .label{font-size:.8rem;color:var(--muted)}
+    .stat-card .value{font-size:1.25rem;font-weight:700}
+    .stat-card.collected .value{color:var(--success)}
+    .stat-card.due .value{color:var(--danger)}
+    .info-box{background:#e8f0fe;border-left:4px solid var(--primary);padding:.8rem 1rem;border-radius:0 8px 8px 0;font-size:.9rem;margin-bottom:1rem;color:#174ea6}
+    .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#323232;color:#fff;padding:.7rem 1.2rem;border-radius:8px;z-index:300;opacity:0;transition:.3s}
+    .toast.show{opacity:1}
+    .loading{text-align:center;padding:2rem;color:var(--muted)}
+    @media(max-width:600px){.form-group{min-width:100%}.pay-input{width:100%}}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📚 TSC Coaching — Fee Management</h1>
+    <p>English & ICT · Batch & College · Cloud Data</p>
+  </header>
+
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="students">👨‍🎓 Students</button>
+      <button class="tab-btn" data-tab="summary">📊 Summary</button>
+      <button class="tab-btn" data-tab="add">➕ Add Student</button>
+      <button class="tab-btn" data-tab="settings">⚙️ Settings</button>
+    </div>
+
+    <div id="tab-students" class="tab-content">
+      <div class="card">
+        <h2>Student List</h2>
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="ID / নাম / College / Batch..." />
+          <button class="btn btn-primary" onclick="searchStudent()">🔍 Search</button>
+          <button class="btn btn-outline" onclick="clearSearch()">Clear</button>
+        </div>
+        <div id="studentLoading" class="loading">লোড হচ্ছে...</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>নাম</th><th>College</th><th>Batch</th><th>Subjects</th><th>Due</th><th>Actions</th></tr></thead>
+            <tbody id="studentTableBody"></tbody>
+          </table>
+        </div>
+        <div id="emptyStudents" style="display:none;text-align:center;padding:2rem;color:var(--muted)">কোনো student নেই</div>
+      </div>
+    </div>
+
+    <div id="tab-summary" class="tab-content" style="display:none">
+      <div class="card">
+        <h2>📊 Monthly Summary</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label>মাস সিলেক্ট করুন</label>
+            <select id="summaryMonth" onchange="renderSummary()"></select>
+          </div>
+        </div>
+        <div class="stat-grid" id="summaryStats"></div>
+        <h3 style="font-size:1rem;margin:1rem 0 .6rem">Subject-wise</h3>
+        <table>
+          <thead><tr><th>Subject</th><th>Expected</th><th>Collected</th><th>Due</th></tr></thead>
+          <tbody id="subjectBreakdown"></tbody>
+        </table>
+        <h3 style="font-size:1rem;margin:1.2rem 0 .6rem">যাদের Due আছে</h3>
+        <table>
+          <thead><tr><th>ID</th><th>নাম</th><th>College</th><th>Batch</th><th>English</th><th>ICT</th><th>Due</th><th></th></tr></thead>
+          <tbody id="dueStudentsBody"></tbody>
+        </table>
+        <div id="noDueMsg" style="display:none;text-align:center;padding:1rem;color:var(--muted)">সবার payment clear ✅</div>
+      </div>
+    </div>
+
+    <div id="tab-add" class="tab-content" style="display:none">
+      <div class="card">
+        <h2>নতুন Student যোগ করুন</h2>
+        <div class="form-row">
+          <div class="form-group"><label>Student ID *</label><input type="text" id="newId" placeholder="A001" /></div>
+          <div class="form-group"><label>নাম *</label><input type="text" id="newName" placeholder="নাম" /></div>
+        </div>
+        <div class="form-group" style="margin-bottom:.8rem">
+          <label>College * (ক্লিক করে সিলেক্ট)</label>
+          <div class="chip-group" id="collegeChips"></div>
+        </div>
+        <div class="form-group" style="margin-bottom:.8rem">
+          <label>Batch (৭টা / ৯টা ইত্যাদি)</label>
+          <div class="chip-group" id="batchChips"></div>
+        </div>
+        <div class="form-group" style="margin-bottom:1rem">
+          <label>Subjects</label>
+          <div style="display:flex;gap:1rem;margin-top:.3rem">
+            <label><input type="checkbox" id="subEnglish" checked /> English</label>
+            <label><input type="checkbox" id="subICT" checked /> ICT</label>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="addStudent()">✅ যোগ করুন</button>
+      </div>
+    </div>
+
+    <div id="tab-settings" class="tab-content" style="display:none">
+      <div class="card">
+        <h2>মাসিক Fee</h2>
+        <div class="form-row">
+          <div class="form-group"><label>English (৳)</label><input type="number" id="feeEnglish" min="0" step="50" /></div>
+          <div class="form-group"><label>ICT (৳)</label><input type="number" id="feeICT" min="0" step="50" /></div>
+        </div>
+        <button class="btn btn-primary" onclick="saveFees()">💾 Save Fees</button>
+      </div>
+      <div class="card">
+        <h2>College List</h2>
+        <div id="collegeList"></div>
+        <div class="form-row" style="margin-top:.7rem">
+          <div class="form-group"><input type="text" id="newCollege" placeholder="নতুন College" /></div>
+          <button class="btn btn-primary" onclick="addCollege()">➕</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Batch List</h2>
+        <div id="batchList"></div>
+        <div class="form-row" style="margin-top:.7rem">
+          <div class="form-group"><input type="text" id="newBatch" placeholder="নতুন Batch (৭টা)" /></div>
+          <button class="btn btn-primary" onclick="addBatch()">➕</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="info-box">ডাটা Firebase Cloud-এ সেভ হয়। ফোন ও কম্পিউটার দুই জায়গা থেকেই একই ডাটা দেখা যাবে। কোনো টাকা লাগে না।</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="paymentModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modalTitle">Payment</h3>
+        <button class="close-btn" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="modalSummary" style="margin-bottom:1rem;padding:.8rem;background:#e8f0fe;border-radius:8px"></div>
+        <div id="monthGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyD-RLwnWN4RyiItmg90wugyN4oHpr0vFWU",
+      authDomain: "tsc-coaching.firebaseapp.com",
+      projectId: "tsc-coaching",
+      storageBucket: "tsc-coaching.firebasestorage.app",
+      messagingSenderId: "496325386989",
+      appId: "1:496325386989:web:9e2bd3f369a2603e6662e4",
+      measurementId: "G-RNZ06T1P9J"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const SUBJECTS = ['English','ICT'];
+    const DEFAULT_COLLEGES = ['Notre Dame College','Holy Cross College','Dhaka College','Ideal College','Viqarunnisa Noon','Other'];
+    const DEFAULT_BATCHES = ['৭টা','৯টা','সকাল','অন্যান্য'];
+
+    function generateMonths() {
+      const months = [];
+      const now = new Date();
+      for (let i = 0; i < 12; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+        const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+        const label = d.toLocaleString('bn-BD',{month:'long',year:'numeric'});
+        months.push({key,label});
+      }
+      return months;
+    }
+    const MONTHS = generateMonths();
+
+    let data = {fees:{English:500,ICT:400},colleges:[...DEFAULT_COLLEGES],batches:[...DEFAULT_BATCHES],students:[]};
+    let selectedCollege = null, selectedBatch = null, currentStudentId = null;
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    async function loadAll() {
+      try {
+        const settingsSnap = await db.collection('settings').doc('main').get();
+        if (settingsSnap.exists) {
+          const s = settingsSnap.data();
+          data.fees = s.fees || data.fees;
+          data.colleges = s.colleges || data.colleges;
+          data.batches = s.batches || data.batches;
+        }
+        const studentsSnap = await db.collection('students').get();
+        data.students = [];
+        studentsSnap.forEach(doc => data.students.push({id:doc.id,...doc.data()}));
+        document.getElementById('studentLoading').style.display = 'none';
+        renderStudents();
+        loadFeeInputs();
+      } catch(e) {
+        console.error(e);
+        showToast('লোড সমস্যা: ' + e.message);
+        document.getElementById('studentLoading').textContent = 'লোড ব্যর্থ — Config/Rules চেক করুন';
+      }
+    }
+
+    async function saveSettings() {
+      await db.collection('settings').doc('main').set({
+        fees: data.fees, colleges: data.colleges, batches: data.batches
+      });
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).style.display = 'block';
+        if (btn.dataset.tab === 'settings') { loadFeeInputs(); renderCollegeList(); renderBatchList(); }
+        if (btn.dataset.tab === 'add') { renderCollegeChips(); renderBatchChips(); }
+        if (btn.dataset.tab === 'summary') { populateMonthSelect(); renderSummary(); }
+        if (btn.dataset.tab === 'students') renderStudents();
+      });
+    });
+
+    function loadFeeInputs() {
+      document.getElementById('feeEnglish').value = data.fees.English || 500;
+      document.getElementById('feeICT').value = data.fees.ICT || 400;
+    }
+    async function saveFees() {
+      data.fees.English = parseInt(document.getElementById('feeEnglish').value) || 0;
+      data.fees.ICT = parseInt(document.getElementById('feeICT').value) || 0;
+      await saveSettings();
+      showToast('Fee সেভ হয়েছে ✓');
+    }
+
+    function renderCollegeList() {
+      document.getElementById('collegeList').innerHTML = data.colleges.map((c,i) =>
+        `<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid #eee">
+          <span>${c}</span><button class="btn btn-danger btn-sm" onclick="removeCollege(${i})">🗑</button></div>`).join('');
+    }
+    async function addCollege() {
+      const name = document.getElementById('newCollege').value.trim();
+      if (!name || data.colleges.includes(name)) return showToast('সঠিক নাম দিন');
+      data.colleges.push(name); await saveSettings();
+      document.getElementById('newCollege').value = ''; renderCollegeList(); showToast('যোগ হয়েছে');
+    }
+    async function removeCollege(i) {
+      if (!confirm('মুছবেন?')) return;
+      data.colleges.splice(i,1); await saveSettings(); renderCollegeList();
+    }
+
+    function renderBatchList() {
+      document.getElementById('batchList').innerHTML = data.batches.map((b,i) =>
+        `<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid #eee">
+          <span>${b}</span><button class="btn btn-danger btn-sm" onclick="removeBatch(${i})">🗑</button></div>`).join('');
+    }
+    async function addBatch() {
+      const name = document.getElementById('newBatch').value.trim();
+      if (!name || data.batches.includes(name)) return showToast('সঠিক নাম দিন');
+      data.batches.push(name); await saveSettings();
+      document.getElementById('newBatch').value = ''; renderBatchList(); showToast('যোগ হয়েছে');
+    }
+    async function removeBatch(i) {
+      if (!confirm('মুছবেন?')) return;
+      data.batches.splice(i,1); await saveSettings(); renderBatchList();
+    }
+
+    function renderCollegeChips() {
+      selectedCollege = null;
+      document.getElementById('collegeChips').innerHTML = data.colleges.map(c =>
+        `<span class="chip" onclick="selectCollege(this,'${c.replace(/'/g,"\\'")}')">${c}</span>`).join('');
+    }
+    function selectCollege(el, name) {
+      document.querySelectorAll('#collegeChips .chip').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected'); selectedCollege = name;
+    }
+    function renderBatchChips() {
+      selectedBatch = null;
+      document.getElementById('batchChips').innerHTML = data.batches.map(b =>
+        `<span class="chip" onclick="selectBatch(this,'${b.replace(/'/g,"\\'")}')">${b}</span>`).join('');
+    }
+    function selectBatch(el, name) {
+      document.querySelectorAll('#batchChips .chip').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected'); selectedBatch = name;
+    }
+
+    async function addStudent() {
+      const id = document.getElementById('newId').value.trim();
+      const name = document.getElementById('newName').value.trim();
+      const subjects = [];
+      if (document.getElementById('subEnglish').checked) subjects.push('English');
+      if (document.getElementById('subICT').checked) subjects.push('ICT');
+      if (!id || !name) return showToast('ID ও নাম দিন');
+      if (!selectedCollege) return showToast('College সিলেক্ট করুন');
+      if (subjects.length === 0) return showToast('Subject সিলেক্ট করুন');
+      if (data.students.find(s => s.id.toLowerCase() === id.toLowerCase())) return showToast('ID আগে থেকেই আছে');
+
+      const payments = {};
+      MONTHS.forEach(m => {
+        payments[m.key] = {};
+        subjects.forEach(sub => payments[m.key][sub] = 0);
+      });
+
+      const student = {name, college:selectedCollege, batch:selectedBatch||'—', subjects, payments};
+      await db.collection('students').doc(id).set(student);
+      data.students.push({id, ...student});
+      showToast(name + ' যোগ হয়েছে ✓');
+      document.getElementById('newId').value = '';
+      document.getElementById('newName').value = '';
+      document.querySelector('[data-tab="students"]').click();
+    }
+
+    function calcStudentDue(s) {
+      let total = 0;
+      MONTHS.forEach(m => {
+        (s.subjects||[]).forEach(sub => {
+          const fee = data.fees[sub] || 0;
+          const paid = (s.payments?.[m.key]?.[sub]) || 0;
+          total += Math.max(0, fee - paid);
+        });
+      });
+      return total;
+    }
+
+    function renderStudents(filter = null) {
+      let list = data.students;
+      if (filter) {
+        const q = filter.toLowerCase();
+        list = list.filter(s =>
+          s.id.toLowerCase().includes(q) || s.name.toLowerCase().includes(q) ||
+          (s.college||'').toLowerCase().includes(q) || (s.batch||'').toLowerCase().includes(q)
+        );
+      }
+      const tbody = document.getElementById('studentTableBody');
+      const empty = document.getElementById('emptyStudents');
+      if (list.length === 0) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      tbody.innerHTML = list.map(s => {
+        const due = calcStudentDue(s);
+        const badge = due > 0 ? `<span class="badge badge-due">${due} ৳ Due</span>` : `<span class="badge badge-paid">All Paid</span>`;
+        return `<tr>
+          <td><strong>${s.id}</strong></td><td>${s.name}</td>
+          <td><span class="badge badge-college">${s.college||'—'}</span></td>
+          <td><span class="badge badge-batch">${s.batch||'—'}</span></td>
+          <td>${(s.subjects||[]).join(', ')}</td><td>${badge}</td>
+          <td>
+            <button class="btn btn-primary btn-sm" onclick="openPayment('${s.id}')">💳</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.id}')">🗑</button>
+          </td></tr>`;
+      }).join('');
+    }
+
+    function searchStudent() { renderStudents(document.getElementById('searchInput').value.trim() || null); }
+    function clearSearch() { document.getElementById('searchInput').value = ''; renderStudents(); }
+
+    async function deleteStudent(id) {
+      if (!confirm(id + ' মুছবেন?')) return;
+      await db.collection('students').doc(id).delete();
+      data.students = data.students.filter(s => s.id !== id);
+      renderStudents(); showToast('মুছে ফেলা হয়েছে');
+    }
+
+    function populateMonthSelect() {
+      document.getElementById('summaryMonth').innerHTML = MONTHS.map((m,i) =>
+        `<option value="${m.key}" ${i===0?'selected':''}>${m.label}</option>`).join('');
+    }
+
+    function getMonthStats(monthKey) {
+      let expected = 0, collected = 0;
+      const subjectStats = {English:{expected:0,collected:0},ICT:{expected:0,collected:0}};
+      const dueStudents = [];
+      data.students.forEach(s => {
+        let studentDue = 0; const dueDetail = {};
+        (s.subjects||[]).forEach(sub => {
+          const fee = data.fees[sub] || 0;
+          const paid = (s.payments?.[monthKey]?.[sub]) || 0;
+          const due = Math.max(0, fee - paid);
+          expected += fee; collected += Math.min(paid, fee);
+          if (subjectStats[sub]) { subjectStats[sub].expected += fee; subjectStats[sub].collected += Math.min(paid,fee); }
+          dueDetail[sub] = {paid,due,fee}; studentDue += due;
+        });
+        SUBJECTS.forEach(sub => { if (!dueDetail[sub]) dueDetail[sub] = null; });
+        if (studentDue > 0) dueStudents.push({id:s.id,name:s.name,college:s.college,batch:s.batch,due:studentDue,detail:dueDetail});
+      });
+      return {expected,collected,due:expected-collected,subjectStats,dueStudents};
+    }
+
+    function renderSummary() {
+      const monthKey = document.getElementById('summaryMonth').value;
+      const stats = getMonthStats(monthKey);
+      document.getElementById('summaryStats').innerHTML = `
+        <div class="stat-card"><div class="label">Expected</div><div class="value">${stats.expected} ৳</div></div>
+        <div class="stat-card collected"><div class="label">Collected</div><div class="value">${stats.collected} ৳</div></div>
+        <div class="stat-card due"><div class="label">Due</div><div class="value">${stats.due} ৳</div></div>
+        <div class="stat-card"><div class="label">Rate</div><div class="value">${stats.expected?Math.round(stats.collected/stats.expected*100):0}%</div></div>`;
+      document.getElementById('subjectBreakdown').innerHTML = SUBJECTS.map(sub => {
+        const s = stats.subjectStats[sub];
+        return `<tr><td><strong>${sub}</strong></td><td>${s.expected} ৳</td>
+          <td style="color:var(--success)">${s.collected} ৳</td>
+          <td style="color:var(--danger)">${s.expected-s.collected} ৳</td></tr>`;
+      }).join('');
+      const tbody = document.getElementById('dueStudentsBody');
+      const noDue = document.getElementById('noDueMsg');
+      if (stats.dueStudents.length === 0) { tbody.innerHTML = ''; noDue.style.display = 'block'; }
+      else {
+        noDue.style.display = 'none';
+        tbody.innerHTML = stats.dueStudents.map(s => {
+          const eng = s.detail.English ? (s.detail.English.due > 0 ? `<span class="badge badge-due">${s.detail.English.due}</span>` : `<span class="badge badge-paid">Paid</span>`) : '—';
+          const ict = s.detail.ICT ? (s.detail.ICT.due > 0 ? `<span class="badge badge-due">${s.detail.ICT.due}</span>` : `<span class="badge badge-paid">Paid</span>`) : '—';
+          return `<tr><td><strong>${s.id}</strong></td><td>${s.name}</td><td>${s.college||'—'}</td><td>${s.batch||'—'}</td>
+            <td>${eng}</td><td>${ict}</td><td><span class="badge badge-due">${s.due} ৳</span></td>
+            <td><button class="btn btn-primary btn-sm" onclick="openPayment('${s.id}')">💳</button></td></tr>`;
+        }).join('');
+      }
+    }
+
+    function openPayment(id) {
+      currentStudentId = id;
+      const s = data.students.find(x => x.id === id);
+      if (!s) return;
+      document.getElementById('modalTitle').textContent = `${s.name} (${s.id}) · ${s.college||''} · ${s.batch||''}`;
+      const totalDue = calcStudentDue(s);
+      let totalPaid = 0;
+      MONTHS.forEach(m => (s.subjects||[]).forEach(sub => totalPaid += (s.payments?.[m.key]?.[sub]) || 0));
+      document.getElementById('modalSummary').innerHTML = `Paid: <b style="color:var(--success)">${totalPaid} ৳</b> &nbsp; Due: <b style="color:var(--danger)">${totalDue} ৳</b>`;
+      document.getElementById('monthGrid').innerHTML = MONTHS.map(m => {
+        const rows = (s.subjects||[]).map(sub => {
+          const fee = data.fees[sub] || 0;
+          const paid = (s.payments?.[m.key]?.[sub]) || 0;
+          const due = Math.max(0, fee - paid);
+          let badge = paid >= fee && fee > 0 ? '<span class="badge badge-paid">Paid</span>' : paid > 0 ? '<span class="badge badge-partial">Partial</span>' : '<span class="badge badge-due">Due</span>';
+          return `<div class="subject-row">
+            <strong style="min-width:80px">${sub}</strong>
+            <span style="font-size:.85rem;color:var(--muted)">Fee ${fee} | Paid ${paid} | Due ${due} ${badge}</span>
+            <input type="number" class="pay-input" min="0" max="${fee}" value="${paid}" data-month="${m.key}" data-subject="${sub}" />
+            <button class="btn btn-success btn-sm" onclick="markFull('${m.key}','${sub}',${fee})">Full</button>
+          </div>`;
+        }).join('');
+        return `<div class="month-card"><h4>${m.label}</h4>${rows}</div>`;
+      }).join('');
+      document.getElementById('paymentModal').classList.add('show');
+    }
+
+    async function closeModal() {
+      await savePaymentInputs();
+      document.getElementById('paymentModal').classList.remove('show');
+      currentStudentId = null;
+      renderStudents();
+      if (document.getElementById('tab-summary').style.display !== 'none') renderSummary();
+    }
+
+    async function savePaymentInputs() {
+      if (!currentStudentId) return;
+      const s = data.students.find(x => x.id === currentStudentId);
+      if (!s) return;
+      document.querySelectorAll('.pay-input').forEach(inp => {
+        const month = inp.dataset.month, sub = inp.dataset.subject;
+        let val = parseInt(inp.value) || 0;
+        const fee = data.fees[sub] || 0;
+        if (val > fee) val = fee; if (val < 0) val = 0;
+        if (!s.payments[month]) s.payments[month] = {};
+        s.payments[month][sub] = val;
+      });
+      await db.collection('students').doc(currentStudentId).update({payments: s.payments});
+    }
+
+    async function markFull(month, sub, fee) {
+      const inp = document.querySelector(`.pay-input[data-month="${month}"][data-subject="${sub}"]`);
+      if (inp) { inp.value = fee; await savePaymentInputs(); openPayment(currentStudentId); showToast(sub + ' Full Pay ✓'); }
+    }
+
+    document.getElementById('paymentModal').addEventListener('click', e => {
+      if (e.target.id === 'paymentModal') closeModal();
+    });
+
+    loadAll();
+  </script>
+</body>
+</html>
