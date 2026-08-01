@@ -15,7 +15,7 @@
     }
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh}
-    header{background:linear-gradient(135deg,#1e40af,#2563eb);color:#fff;padding:1.1rem 1.5rem;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(37,99,235,.25);display:flex;justify-content:space-between;align-items:center}
+    header{background:linear-gradient(135deg,#1e40af,#2563eb);color:#fff;padding:1.1rem 1.5rem;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(37,99,235,.25);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem}
     header h1{font-size:1.3rem;font-weight:700}
     header p{font-size:.8rem;opacity:.9}
     .header-right{display:flex;align-items:center;gap:.8rem;font-size:.9rem}
@@ -79,7 +79,6 @@
     .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#0f172a;color:#fff;padding:.7rem 1.2rem;border-radius:10px;z-index:300;opacity:0;transition:.3s;font-weight:500}
     .toast.show{opacity:1}
     .loading,.empty{text-align:center;padding:2.5rem;color:var(--muted)}
-    /* LOGIN */
     #loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#1e40af,#2563eb)}
     .login-box{background:#fff;padding:2.2rem;border-radius:16px;width:100%;max-width:400px;box-shadow:0 20px 50px rgba(0,0,0,.2)}
     .login-box h2{text-align:center;margin-bottom:.3rem;font-size:1.4rem}
@@ -87,899 +86,864 @@
     .login-box .form-group{margin-bottom:1rem}
     .login-error{color:var(--danger);font-size:.85rem;margin-top:.5rem;text-align:center;display:none}
     #app{display:none}
-    @media(max-width:600px){.form-group{min-width:100%}.pay-input{width:100%}header{flex-direction:column;gap:.5rem;align-items:flex-start}}
+    @media(max-width:600px){.form-group{min-width:100%}.pay-input{width:100%}header{flex-direction:column;align-items:flex-start}}
   </style>
 </head>
 <body>
 
-  <!-- LOGIN SCREEN -->
-  <div id="loginScreen">
-    <div class="login-box">
-      <h2>TSC Coaching</h2>
-      <p>Fee Management Login</p>
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="loginEmail" placeholder="admin@tsc.com" />
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="loginPassword" placeholder="••••••••" />
-      </div>
-      <button class="btn btn-primary" style="width:100%;margin-top:.5rem" onclick="doLogin()">Login</button>
-      <div class="login-error" id="loginError">Invalid email or password</div>
-    </div>
+<div id="loginScreen">
+  <div class="login-box">
+    <h2>TSC Coaching</h2>
+    <p>Fee Management Login</p>
+    <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="admin@tsc.com" /></div>
+    <div class="form-group"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••" /></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:.5rem" onclick="doLogin()">Login</button>
+    <div class="login-error" id="loginError">Invalid email or password</div>
   </div>
+</div>
 
-  <!-- MAIN APP -->
-  <div id="app">
-    <header>
-      <div>
-        <h1>TSC Coaching — Fee Management</h1>
-        <p>English · ICT · HSC Batch · Cloud Sync</p>
-      </div>
-      <div class="header-right">
-        <span id="userInfo"></span>
-        <button class="btn btn-outline btn-sm" style="color:#fff;border-color:rgba(255,255,255,.4)" onclick="doLogout()">Logout</button>
-      </div>
-    </header>
+<div id="app">
+  <header>
+    <div>
+      <h1>TSC Coaching — Fee Management</h1>
+      <p>HSC Batch · Cloud Sync</p>
+    </div>
+    <div class="header-right">
+      <span id="userInfo"></span>
+      <button class="btn btn-outline btn-sm" style="color:#fff;border-color:rgba(255,255,255,.5)" onclick="doLogout()">Logout</button>
+    </div>
+  </header>
 
-    <div class="container">
-      <div class="year-bar">
-        <span>HSC Batch:</span>
-        <select id="yearSelect" onchange="setYear(+this.value)">
-          <option value="2027">2027</option>
-          <option value="2028">2028</option>
-          <option value="2029">2029</option>
-          <option value="2030">2030</option>
-        </select>
-      </div>
+  <div class="container">
+    <div class="year-bar">
+      <span>HSC Batch:</span>
+      <select id="yearSelect" onchange="setYear(+this.value)">
+        <option value="2027">2027</option>
+        <option value="2028">2028</option>
+        <option value="2029">2029</option>
+        <option value="2030">2030</option>
+      </select>
+    </div>
 
-      <div class="tabs" id="mainTabs">
-        <button class="tab-btn active" data-tab="students">Students</button>
-        <button class="tab-btn" data-tab="monthview">Month View</button>
-        <button class="tab-btn" data-tab="summary">Summary</button>
-        <button class="tab-btn" data-tab="add" id="tabAddBtn">Add Student</button>
-        <button class="tab-btn" data-tab="settings" id="tabSettingsBtn">Settings</button>
-      </div>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="students">Students</button>
+      <button class="tab-btn" data-tab="monthview">Month View</button>
+      <button class="tab-btn" data-tab="summary">Summary</button>
+      <button class="tab-btn" data-tab="add" id="tabAddBtn">Add Student</button>
+      <button class="tab-btn" data-tab="settings" id="tabSettingsBtn">Settings</button>
+    </div>
 
-      <!-- STUDENTS -->
-      <div id="tab-students" class="tab-content">
-        <div class="card">
-          <h2>Students — <span id="yearLabel1">2027</span> Batch</h2>
-          <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Search ID / Name / College / Time Batch..." />
-            <button class="btn btn-primary" onclick="searchStudent()">Search</button>
-            <button class="btn btn-outline" onclick="clearSearch()">Clear</button>
-          </div>
-          <div id="studentLoading" class="loading">Loading...</div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr><th>ID</th><th>Name</th><th>College</th><th>Time Batch</th><th>Subjects</th><th>This Month</th><th>Actions</th></tr>
-              </thead>
-              <tbody id="studentTableBody"></tbody>
-            </table>
-          </div>
-          <div id="emptyStudents" class="empty" style="display:none">No students in this batch</div>
+    <!-- STUDENTS -->
+    <div id="tab-students" class="tab-content">
+      <div class="card">
+        <h2>Students — <span id="yearLabel1">2027</span> Batch</h2>
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="Search ID / Name / College / Time Batch..." />
+          <button class="btn btn-primary" onclick="searchStudent()">Search</button>
+          <button class="btn btn-outline" onclick="clearSearch()">Clear</button>
         </div>
-      </div>
-
-      <!-- MONTH VIEW -->
-      <div id="tab-monthview" class="tab-content" style="display:none">
-        <div class="card">
-          <h2>Month View — <span id="yearLabel2">2027</span> Batch</h2>
-          <div class="info-box">Select month & time-batch. Only students of the selected HSC year are shown.</div>
-          <div class="form-row">
-            <div class="form-group" style="max-width:250px">
-              <label>Month</label>
-              <select id="monthViewSelect" onchange="renderMonthView()"></select>
-            </div>
-            <div class="form-group" style="max-width:200px">
-              <label>Time Batch</label>
-              <select id="batchViewSelect" onchange="renderMonthView()"><option value="all">All</option></select>
-            </div>
-          </div>
-          <div class="stat-grid" id="monthViewStats"></div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr><th>ID</th><th>Name</th><th>College</th><th>Time Batch</th><th id="mvSubHead">Subjects</th><th>Due</th><th></th></tr>
-              </thead>
-              <tbody id="monthViewBody"></tbody>
-            </table>
-          </div>
-          <div id="monthViewEmpty" class="empty" style="display:none">No students</div>
+        <div id="studentLoading" class="loading">Loading...</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Name</th><th>College</th><th>Time Batch</th><th>Subjects</th><th>This Month</th><th>Actions</th></tr></thead>
+            <tbody id="studentTableBody"></tbody>
+          </table>
         </div>
+        <div id="emptyStudents" class="empty" style="display:none">No students in this batch</div>
       </div>
+    </div>
 
-      <!-- SUMMARY -->
-      <div id="tab-summary" class="tab-content" style="display:none">
-        <div class="card">
-          <h2>Summary — <span id="yearLabel3">2027</span> Batch</h2>
-          <div class="form-row">
-            <div class="form-group" style="max-width:250px">
-              <label>Month</label>
-              <select id="summaryMonth" onchange="renderSummary()"></select>
-            </div>
-          </div>
-          <div class="stat-grid" id="summaryStats"></div>
-          <h3 style="font-size:1rem;margin:1rem 0 .6rem;font-weight:700">Subject Breakdown</h3>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Subject</th><th>Expected</th><th>Collected</th><th>Due</th></tr></thead>
-              <tbody id="subjectBreakdown"></tbody>
-            </table>
-          </div>
-          <h3 style="font-size:1rem;margin:1.2rem 0 .6rem;font-weight:700">Students with Due</h3>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr><th>ID</th><th>Name</th><th>College</th><th>Time Batch</th><th>Due</th><th></th></tr>
-              </thead>
-              <tbody id="dueStudentsBody"></tbody>
-            </table>
-          </div>
-          <div id="noDueMsg" class="empty" style="display:none">All clear</div>
+    <!-- MONTH VIEW -->
+    <div id="tab-monthview" class="tab-content" style="display:none">
+      <div class="card">
+        <h2>Month View — <span id="yearLabel2">2027</span> Batch</h2>
+        <div class="info-box">Select month & time-batch.</div>
+        <div class="form-row">
+          <div class="form-group" style="max-width:250px"><label>Month</label><select id="monthViewSelect" onchange="renderMonthView()"></select></div>
+          <div class="form-group" style="max-width:200px"><label>Time Batch</label><select id="batchViewSelect" onchange="renderMonthView()"><option value="all">All</option></select></div>
         </div>
+        <div class="stat-grid" id="monthViewStats"></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Name</th><th>College</th><th>Time Batch</th><th>Status</th><th>Due</th><th></th></tr></thead>
+            <tbody id="monthViewBody"></tbody>
+          </table>
+        </div>
+        <div id="monthViewEmpty" class="empty" style="display:none">No students</div>
+      </div>
+    </div>
+
+    <!-- SUMMARY -->
+    <div id="tab-summary" class="tab-content" style="display:none">
+      <div class="card">
+        <h2>Summary — <span id="yearLabel3">2027</span> Batch</h2>
+        <div class="form-row">
+          <div class="form-group" style="max-width:250px"><label>Month</label><select id="summaryMonth" onchange="renderSummary()"></select></div>
+        </div>
+        <div class="stat-grid" id="summaryStats"></div>
+        <h3 style="font-size:1rem;margin:1rem 0 .6rem;font-weight:700">Subject / Teacher Breakdown</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Subject</th><th>Expected</th><th>Collected</th><th>Teacher Share</th><th>Admin Commission</th></tr></thead>
+            <tbody id="subjectBreakdown"></tbody>
+          </table>
+        </div>
+        <h3 style="font-size:1rem;margin:1.2rem 0 .6rem;font-weight:700">Students with Due</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Name</th><th>College</th><th>Time Batch</th><th>Due</th><th></th></tr></thead>
+            <tbody id="dueStudentsBody"></tbody>
+          </table>
+        </div>
+        <div id="noDueMsg" class="empty" style="display:none">All clear</div>
+      </div>
+    </div>
+
+    <!-- ADD STUDENT -->
+    <div id="tab-add" class="tab-content" style="display:none">
+      <div class="card">
+        <h2>Add Student</h2>
+        <div class="form-row">
+          <div class="form-group"><label>Student ID *</label><input type="text" id="newId" placeholder="e.g. A001" /></div>
+          <div class="form-group"><label>Name *</label><input type="text" id="newName" placeholder="Full name" /></div>
+        </div>
+        <div class="form-group" style="margin-bottom:1rem">
+          <label>HSC Year *</label>
+          <select id="newHscYear"><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option></select>
+        </div>
+        <div class="form-group" style="margin-bottom:1rem"><label>College *</label><div class="chip-group" id="collegeChips"></div></div>
+        <div class="form-group" style="margin-bottom:1rem"><label>Time Batch</label><div class="chip-group" id="batchChips"></div></div>
+        <div class="form-group" style="margin-bottom:1.2rem"><label>Subjects</label><div class="chip-group" id="subjectChips"></div></div>
+        <button class="btn btn-primary" onclick="addStudent()">Add Student</button>
+      </div>
+    </div>
+
+    <!-- SETTINGS (Admin only) -->
+    <div id="tab-settings" class="tab-content" style="display:none">
+      <div class="card">
+        <h2>Monthly Fees</h2>
+        <div id="feeInputs"></div>
+        <button class="btn btn-primary" style="margin-top:.8rem" onclick="saveFees()">Save Fees</button>
       </div>
 
-      <!-- ADD STUDENT -->
-      <div id="tab-add" class="tab-content" style="display:none">
-        <div class="card">
-          <h2>Add Student</h2>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Student ID *</label>
-              <input type="text" id="newId" placeholder="e.g. A001" />
-            </div>
-            <div class="form-group">
-              <label>Name *</label>
-              <input type="text" id="newName" placeholder="Full name" />
-            </div>
+      <div class="card">
+        <h2>Admin Commission Rate</h2>
+        <div class="info-box">Admin gets this % from every payment. Teacher gets the rest.</div>
+        <div class="form-row">
+          <div class="form-group" style="max-width:180px">
+            <label>Commission %</label>
+            <input type="number" id="commissionRate" min="0" max="100" step="5" value="30" />
           </div>
-          <div class="form-group" style="margin-bottom:1rem">
-            <label>HSC Year *</label>
-            <select id="newHscYear">
-              <option value="2027">2027</option>
-              <option value="2028">2028</option>
-              <option value="2029">2029</option>
-              <option value="2030">2030</option>
-            </select>
-          </div>
-          <div class="form-group" style="margin-bottom:1rem">
-            <label>College *</label>
-            <div class="chip-group" id="collegeChips"></div>
-          </div>
-          <div class="form-group" style="margin-bottom:1rem">
-            <label>Time Batch</label>
-            <div class="chip-group" id="batchChips"></div>
-          </div>
-          <div class="form-group" style="margin-bottom:1.2rem">
-            <label>Subjects</label>
-            <div class="chip-group" id="subjectChips"></div>
-          </div>
-          <button class="btn btn-primary" onclick="addStudent()">Add Student</button>
+        </div>
+        <button class="btn btn-primary" onclick="saveCommission()">Save Commission</button>
+      </div>
+
+      <div class="card">
+        <h2>Subjects</h2>
+        <div id="subjectList"></div>
+        <div class="form-row" style="margin-top:.7rem">
+          <div class="form-group"><input type="text" id="newSubject" placeholder="New subject" /></div>
+          <button class="btn btn-primary" onclick="addSubject()">Add</button>
         </div>
       </div>
 
-      <!-- SETTINGS -->
-      <div id="tab-settings" class="tab-content" style="display:none">
-        <div class="card">
-          <h2>Monthly Fees</h2>
-          <div id="feeInputs"></div>
-          <button class="btn btn-primary" style="margin-top:.8rem" onclick="saveFees()">Save Fees</button>
+      <div class="card">
+        <h2>College List</h2>
+        <div id="collegeList"></div>
+        <div class="form-row" style="margin-top:.7rem">
+          <div class="form-group"><input type="text" id="newCollege" placeholder="New college" /></div>
+          <button class="btn btn-primary" onclick="addCollege()">Add</button>
         </div>
+      </div>
 
-        <div class="card">
-          <h2>Subjects</h2>
-          <div id="subjectList"></div>
-          <div class="form-row" style="margin-top:.7rem">
-            <div class="form-group"><input type="text" id="newSubject" placeholder="New subject name" /></div>
-            <button class="btn btn-primary" onclick="addSubject()">Add</button>
-          </div>
+      <div class="card">
+        <h2>Time Batch — <span id="yearLabel4">2027</span></h2>
+        <div class="info-box">Each HSC year has its own time batches.</div>
+        <div id="batchList"></div>
+        <div class="form-row" style="margin-top:.7rem">
+          <div class="form-group"><input type="text" id="newBatch" placeholder="e.g. 11AM" /></div>
+          <button class="btn btn-primary" onclick="addBatch()">Add</button>
         </div>
+      </div>
 
-        <div class="card">
-          <h2>College List</h2>
-          <div id="collegeList"></div>
-          <div class="form-row" style="margin-top:.7rem">
-            <div class="form-group"><input type="text" id="newCollege" placeholder="New college" /></div>
-            <button class="btn btn-primary" onclick="addCollege()">Add</button>
-          </div>
+      <div class="card">
+        <h2>Teachers / Users</h2>
+        <div class="info-box">Create login for teachers. They will only see their assigned subject.</div>
+        <div id="teacherList"></div>
+        <h3 style="font-size:1rem;margin:1.2rem 0 .6rem">Create New Teacher</h3>
+        <div class="form-row">
+          <div class="form-group"><label>Email</label><input type="email" id="newTeacherEmail" placeholder="teacher@email.com" /></div>
+          <div class="form-group"><label>Password</label><input type="text" id="newTeacherPass" placeholder="min 6 characters" /></div>
         </div>
-
-        <div class="card">
-          <h2>Time Batch — for <span id="yearLabel4">2027</span></h2>
-          <div class="info-box">Each HSC year has its own time batches.</div>
-          <div id="batchList"></div>
-          <div class="form-row" style="margin-top:.7rem">
-            <div class="form-group"><input type="text" id="newBatch" placeholder="e.g. 11AM" /></div>
-            <button class="btn btn-primary" onclick="addBatch()">Add</button>
-          </div>
+        <div class="form-group" style="margin-bottom:1rem">
+          <label>Access</label>
+          <select id="newTeacherRole"><option value="admin">Admin (Full Access)</option></select>
         </div>
-
-        <div class="card" id="teacherCard">
-          <h2>Teachers / Users</h2>
-          <div class="info-box">Admin can create login for teachers. Teacher will only see their assigned subject.</div>
-          <div id="teacherList"></div>
-          <h3 style="font-size:1rem;margin:1.2rem 0 .6rem">Create New Teacher</h3>
-          <div class="form-row">
-            <div class="form-group"><label>Email</label><input type="email" id="newTeacherEmail" placeholder="teacher@email.com" /></div>
-            <div class="form-group"><label>Password</label><input type="text" id="newTeacherPass" placeholder="min 6 characters" /></div>
-          </div>
-          <div class="form-group" style="margin-bottom:1rem">
-            <label>Subject Access</label>
-            <select id="newTeacherRole">
-              <option value="admin">Admin (Full Access)</option>
-            </select>
-          </div>
-          <button class="btn btn-primary" onclick="createTeacher()">Create Teacher</button>
-        </div>
+        <button class="btn btn-primary" onclick="createTeacher()">Create Teacher</button>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- PAYMENT MODAL -->
-  <div class="modal-overlay" id="paymentModal">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 id="modalTitle">Payment</h3>
-        <button class="close-btn" onclick="closeModal()">×</button>
-      </div>
-      <div class="modal-body">
-        <div id="modalSummary" style="margin-bottom:1rem;padding:.85rem 1rem;background:#eff6ff;border-radius:10px;font-weight:500"></div>
-        <div id="monthGrid"></div>
-      </div>
+<div class="modal-overlay" id="paymentModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">Payment</h3>
+      <button class="close-btn" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="modalSummary" style="margin-bottom:1rem;padding:.85rem 1rem;background:#eff6ff;border-radius:10px;font-weight:500"></div>
+      <div id="monthGrid"></div>
     </div>
   </div>
-  <div class="toast" id="toast"></div>
+</div>
+<div class="toast" id="toast"></div>
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyD-RLwnWN4RyiItmg90wugyN4oHpr0vFWU",
-      authDomain: "tsc-coaching.firebaseapp.com",
-      projectId: "tsc-coaching",
-      storageBucket: "tsc-coaching.firebasestorage.app",
-      messagingSenderId: "496325386989",
-      appId: "1:496325386989:web:9e2bd3f369a2603e6662e4",
-      measurementId: "G-RNZ06T1P9J"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyD-RLwnWN4RyiItmg90wugyN4oHpr0vFWU",
+    authDomain: "tsc-coaching.firebaseapp.com",
+    projectId: "tsc-coaching",
+    storageBucket: "tsc-coaching.firebasestorage.app",
+    messagingSenderId: "496325386989",
+    appId: "1:496325386989:web:9e2bd3f369a2603e6662e4",
+    measurementId: "G-RNZ06T1P9J"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
 
-    const HSC_YEARS = [2027,2028,2029,2030];
-    const DEFAULT_COLLEGES = ['Notre Dame College','Holy Cross College','Dhaka College','Ideal College','Viqarunnisa Noon','Other'];
-    const DEFAULT_BATCHES = {2027:['11AM','2PM','3PM'],2028:['11AM','2PM'],2029:['11AM','2PM'],2030:['11AM','2PM']};
-    const DEFAULT_SUBJECTS = ['English','ICT'];
+  const DEFAULT_COLLEGES = ['Notre Dame College','Holy Cross College','Dhaka College','Ideal College','Viqarunnisa Noon','Other'];
+  const DEFAULT_BATCHES = {2027:['11AM','2PM','3PM'],2028:['11AM','2PM'],2029:['11AM','2PM'],2030:['11AM','2PM']};
+  const DEFAULT_SUBJECTS = ['English','ICT'];
 
-    function generateMonths() {
-      const months = [];
-      const start = new Date(); start.setDate(1);
-      const end = new Date(2030, 11, 1);
-      let d = new Date(start.getFullYear(), start.getMonth(), 1);
-      while (d <= end) {
-        const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-        const label = d.toLocaleString('en-US',{month:'long',year:'numeric'});
-        months.push({key, label});
-        d.setMonth(d.getMonth()+1);
-      }
-      return months;
+  function generateMonths() {
+    const months = [];
+    const start = new Date(); start.setDate(1);
+    const end = new Date(2030, 11, 1);
+    let d = new Date(start.getFullYear(), start.getMonth(), 1);
+    while (d <= end) {
+      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      const label = d.toLocaleString('en-US',{month:'long',year:'numeric'});
+      months.push({key, label});
+      d.setMonth(d.getMonth()+1);
     }
-    const MONTHS = generateMonths();
+    return months;
+  }
+  const MONTHS = generateMonths();
 
-    let data = {
-      fees: {},
-      subjects: [...DEFAULT_SUBJECTS],
-      colleges: [...DEFAULT_COLLEGES],
-      batchesByYear: JSON.parse(JSON.stringify(DEFAULT_BATCHES)),
-      students: [],
-      users: []
-    };
-    let currentYear = 2027;
-    let currentUser = null; // {uid, email, role, subjects: []}
-    let selectedCollege = null, selectedBatch = null, selectedSubjects = [], currentStudentId = null;
+  let data = {
+    fees: {}, subjects: [...DEFAULT_SUBJECTS], colleges: [...DEFAULT_COLLEGES],
+    batchesByYear: JSON.parse(JSON.stringify(DEFAULT_BATCHES)),
+    commissionRate: 30, students: [], users: []
+  };
+  let currentYear = 2027;
+  let currentUser = null;
+  let selectedCollege = null, selectedBatch = null, selectedSubjects = [], currentStudentId = null;
 
-    // ========== AUTH ==========
-    auth.onAuthStateChanged(async user => {
-      if (user) {
-        await loadUserRole(user);
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('app').style.display = 'block';
-        document.getElementById('userInfo').textContent = `${currentUser.email} (${currentUser.role})`;
-        applyRoleUI();
-        await loadAll();
-      } else {
-        document.getElementById('loginScreen').style.display = 'flex';
-        document.getElementById('app').style.display = 'none';
-        currentUser = null;
-      }
+  // ===== AUTH =====
+  auth.onAuthStateChanged(async user => {
+    if (user) {
+      await loadUserRole(user);
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      document.getElementById('userInfo').textContent = currentUser.email + ' (' + (currentUser.role === 'admin' ? 'Admin' : (currentUser.subjects||[]).join(', ')) + ')';
+      applyRoleUI();
+      await loadAll();
+    } else {
+      document.getElementById('loginScreen').style.display = 'flex';
+      document.getElementById('app').style.display = 'none';
+      currentUser = null;
+    }
+  });
+
+  async function loadUserRole(user) {
+    const doc = await db.collection('users').doc(user.uid).get();
+    if (doc.exists) {
+      const d = doc.data();
+      currentUser = { uid: user.uid, email: user.email, role: d.role || 'teacher', subjects: d.subjects || [] };
+    } else {
+      currentUser = { uid: user.uid, email: user.email, role: 'admin', subjects: [] };
+      await db.collection('users').doc(user.uid).set({
+        email: user.email, role: 'admin', subjects: [], createdAt: new Date().toISOString()
+      });
+    }
+  }
+
+  function isAdmin() { return currentUser && currentUser.role === 'admin'; }
+  function allowedSubjects() {
+    if (isAdmin()) return data.subjects;
+    return currentUser.subjects || [];
+  }
+
+  function applyRoleUI() {
+    document.getElementById('tabAddBtn').style.display = '';
+    document.getElementById('tabSettingsBtn').style.display = isAdmin() ? '' : 'none';
+  }
+
+  async function doLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass = document.getElementById('loginPassword').value;
+    const err = document.getElementById('loginError');
+    err.style.display = 'none';
+    try {
+      await auth.signInWithEmailAndPassword(email, pass);
+    } catch (e) {
+      err.style.display = 'block';
+      err.textContent = 'Invalid email or password';
+    }
+  }
+  function doLogout() { auth.signOut(); }
+
+  document.getElementById('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+  // ===== HELPERS =====
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+  function getBatchesForYear(y) {
+    if (!data.batchesByYear[y]) data.batchesByYear[y] = [];
+    return data.batchesByYear[y];
+  }
+  function studentsOfYear() {
+    return data.students.filter(s => +s.hscYear === currentYear);
+  }
+
+  function setYear(y) {
+    currentYear = y;
+    document.getElementById('yearSelect').value = y;
+    ['yearLabel1','yearLabel2','yearLabel3','yearLabel4'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.textContent = y;
     });
+    renderStudents();
+    if (document.getElementById('tab-monthview').style.display !== 'none') { populateBatchSelect(); renderMonthView(); }
+    if (document.getElementById('tab-summary').style.display !== 'none') renderSummary();
+    if (document.getElementById('tab-settings').style.display !== 'none') renderBatchList();
+    if (document.getElementById('tab-add').style.display !== 'none') {
+      document.getElementById('newHscYear').value = y;
+      renderBatchChips();
+    }
+  }
 
-    async function loadUserRole(user) {
-      const doc = await db.collection('users').doc(user.uid).get();
-      if (doc.exists) {
-        const d = doc.data();
-        currentUser = { uid: user.uid, email: user.email, role: d.role || 'teacher', subjects: d.subjects || [] };
-      } else {
-        // First admin (created from console) - make them admin
-        currentUser = { uid: user.uid, email: user.email, role: 'admin', subjects: [] };
-        await db.collection('users').doc(user.uid).set({
-          email: user.email, role: 'admin', subjects: [], createdAt: new Date().toISOString()
-        });
+  // ===== LOAD / SAVE =====
+  async function loadAll() {
+    try {
+      const settingsSnap = await db.collection('settings').doc('main').get();
+      if (settingsSnap.exists) {
+        const s = settingsSnap.data();
+        data.fees = s.fees || {};
+        data.subjects = s.subjects || [...DEFAULT_SUBJECTS];
+        data.colleges = s.colleges || data.colleges;
+        data.commissionRate = s.commissionRate ?? 30;
+        if (s.batchesByYear) data.batchesByYear = s.batchesByYear;
       }
-    }
+      data.subjects.forEach(sub => { if (data.fees[sub] === undefined) data.fees[sub] = 500; });
 
-    function isAdmin() { return currentUser && currentUser.role === 'admin'; }
-    function allowedSubjects() {
-      if (isAdmin()) return data.subjects;
-      return currentUser.subjects || [];
-    }
+      const snap = await db.collection('students').get();
+      data.students = [];
+      snap.forEach(doc => data.students.push({id: doc.id, ...doc.data()}));
 
-    function applyRoleUI() {
-      const addBtn = document.getElementById('tabAddBtn');
-      const setBtn = document.getElementById('tabSettingsBtn');
       if (isAdmin()) {
-        addBtn.style.display = '';
-        setBtn.style.display = '';
-      } else {
-        addBtn.style.display = 'none';
-        setBtn.style.display = 'none';
+        const usersSnap = await db.collection('users').get();
+        data.users = [];
+        usersSnap.forEach(doc => data.users.push({uid: doc.id, ...doc.data()}));
       }
-    }
 
-    async function doLogin() {
-      const email = document.getElementById('loginEmail').value.trim();
-      const pass = document.getElementById('loginPassword').value;
-      const err = document.getElementById('loginError');
-      err.style.display = 'none';
-      try {
-        await auth.signInWithEmailAndPassword(email, pass);
-      } catch (e) {
-        err.style.display = 'block';
-        err.textContent = e.message.includes('user-not-found') || e.message.includes('wrong-password') || e.message.includes('invalid-credential')
-          ? 'Invalid email or password' : e.message;
-      }
-    }
-
-    function doLogout() {
-      auth.signOut();
-    }
-
-    // ========== DATA ==========
-    function showToast(msg) {
-      const t = document.getElementById('toast');
-      t.textContent = msg; t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 2500);
-    }
-
-    function getBatchesForYear(y) {
-      if (!data.batchesByYear[y]) data.batchesByYear[y] = [];
-      return data.batchesByYear[y];
-    }
-
-    function setYear(y) {
-      currentYear = y;
-      document.getElementById('yearSelect').value = y;
-      ['yearLabel1','yearLabel2','yearLabel3','yearLabel4'].forEach(id => {
-        const el = document.getElementById(id); if (el) el.textContent = y;
-      });
+      document.getElementById('studentLoading').style.display = 'none';
       renderStudents();
-      if (document.getElementById('tab-monthview').style.display !== 'none') { populateBatchSelect(); renderMonthView(); }
-      if (document.getElementById('tab-summary').style.display !== 'none') renderSummary();
-      if (document.getElementById('tab-settings').style.display !== 'none') renderBatchList();
-      if (document.getElementById('tab-add').style.display !== 'none') {
-        document.getElementById('newHscYear').value = y;
-        renderBatchChips();
+      loadFeeInputs();
+      renderSubjectList();
+      populateTeacherRoleSelect();
+      const rateEl = document.getElementById('commissionRate');
+      if (rateEl) rateEl.value = data.commissionRate;
+    } catch (e) {
+      console.error(e);
+      showToast('Load error: ' + e.message);
+      document.getElementById('studentLoading').textContent = 'Failed to load';
+    }
+  }
+
+  async function saveSettings() {
+    await db.collection('settings').doc('main').set({
+      fees: data.fees, subjects: data.subjects, colleges: data.colleges,
+      batchesByYear: data.batchesByYear, commissionRate: data.commissionRate
+    });
+  }
+
+  // Tabs
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).style.display = 'block';
+      if (btn.dataset.tab === 'settings') {
+        loadFeeInputs(); renderCollegeList(); renderBatchList(); renderSubjectList(); renderTeacherList();
+        const rateEl = document.getElementById('commissionRate');
+        if (rateEl) rateEl.value = data.commissionRate;
       }
-    }
-
-    function studentsOfYear() {
-      return data.students.filter(s => +s.hscYear === currentYear);
-    }
-
-    async function loadAll() {
-      try {
-        const settingsSnap = await db.collection('settings').doc('main').get();
-        if (settingsSnap.exists) {
-          const s = settingsSnap.data();
-          data.fees = s.fees || {};
-          data.subjects = s.subjects || [...DEFAULT_SUBJECTS];
-          data.colleges = s.colleges || data.colleges;
-          if (s.batchesByYear) data.batchesByYear = s.batchesByYear;
-        }
-        // ensure fees for all subjects
-        data.subjects.forEach(sub => { if (data.fees[sub] === undefined) data.fees[sub] = 500; });
-
-        const snap = await db.collection('students').get();
-        data.students = [];
-        snap.forEach(doc => data.students.push({id: doc.id, ...doc.data()}));
-
-        if (isAdmin()) {
-          const usersSnap = await db.collection('users').get();
-          data.users = [];
-          usersSnap.forEach(doc => data.users.push({uid: doc.id, ...doc.data()}));
-        }
-
-        document.getElementById('studentLoading').style.display = 'none';
-        renderStudents();
-        loadFeeInputs();
-        renderSubjectList();
-        populateTeacherRoleSelect();
-      } catch (e) {
-        console.error(e);
-        showToast('Load error: ' + e.message);
-        document.getElementById('studentLoading').textContent = 'Failed to load';
+      if (btn.dataset.tab === 'add') {
+        document.getElementById('newHscYear').value = currentYear;
+        renderCollegeChips(); renderBatchChips(); renderSubjectChips();
+        document.getElementById('newHscYear').onchange = () => renderBatchChips();
       }
-    }
+      if (btn.dataset.tab === 'summary') { populateMonthSelect('summaryMonth'); renderSummary(); }
+      if (btn.dataset.tab === 'monthview') { populateMonthSelect('monthViewSelect'); populateBatchSelect(); renderMonthView(); }
+      if (btn.dataset.tab === 'students') renderStudents();
+    });
+  });
 
-    async function saveSettings() {
-      await db.collection('settings').doc('main').set({
-        fees: data.fees,
-        subjects: data.subjects,
-        colleges: data.colleges,
-        batchesByYear: data.batchesByYear
-      });
-    }
+  // Fees
+  function loadFeeInputs() {
+    document.getElementById('feeInputs').innerHTML = data.subjects.map(sub => `
+      <div class="form-group" style="margin-bottom:.7rem">
+        <label>${sub} (৳)</label>
+        <input type="number" id="fee_${sub}" min="0" step="50" value="${data.fees[sub]||500}" />
+      </div>`).join('');
+  }
+  async function saveFees() {
+    data.subjects.forEach(sub => {
+      data.fees[sub] = parseInt(document.getElementById('fee_'+sub)?.value) || 0;
+    });
+    await saveSettings(); showToast('Fees saved');
+  }
+  async function saveCommission() {
+    data.commissionRate = parseInt(document.getElementById('commissionRate').value) || 30;
+    await saveSettings(); showToast('Commission saved: ' + data.commissionRate + '%');
+  }
 
-    // Tabs
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-        btn.classList.add('active');
-        document.getElementById('tab-' + btn.dataset.tab).style.display = 'block';
-        if (btn.dataset.tab === 'settings') {
-          loadFeeInputs(); renderCollegeList(); renderBatchList(); renderSubjectList(); renderTeacherList();
-        }
-        if (btn.dataset.tab === 'add') {
-          document.getElementById('newHscYear').value = currentYear;
-          renderCollegeChips(); renderBatchChips(); renderSubjectChips();
-          document.getElementById('newHscYear').onchange = () => renderBatchChips();
-        }
-        if (btn.dataset.tab === 'summary') { populateMonthSelect('summaryMonth'); renderSummary(); }
-        if (btn.dataset.tab === 'monthview') { populateMonthSelect('monthViewSelect'); populateBatchSelect(); renderMonthView(); }
-        if (btn.dataset.tab === 'students') renderStudents();
+  // Subjects
+  function renderSubjectList() {
+    document.getElementById('subjectList').innerHTML = data.subjects.map((s,i) =>
+      `<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid #f1f5f9">
+        <span>${s}</span>
+        ${isAdmin() ? `<button class="btn btn-danger btn-sm" onclick="removeSubject(${i})">Del</button>` : ''}
+      </div>`).join('');
+  }
+  async function addSubject() {
+    if (!isAdmin()) return;
+    const n = document.getElementById('newSubject').value.trim();
+    if (!n || data.subjects.includes(n)) return showToast('Invalid name');
+    data.subjects.push(n); data.fees[n] = 500;
+    await saveSettings();
+    document.getElementById('newSubject').value = '';
+    renderSubjectList(); loadFeeInputs(); populateTeacherRoleSelect();
+    showToast('Subject added');
+  }
+  async function removeSubject(i) {
+    if (!isAdmin() || !confirm('Delete subject?')) return;
+    const sub = data.subjects[i];
+    data.subjects.splice(i,1); delete data.fees[sub];
+    await saveSettings();
+    renderSubjectList(); loadFeeInputs(); populateTeacherRoleSelect();
+  }
+
+  // Colleges
+  function renderCollegeList() {
+    document.getElementById('collegeList').innerHTML = data.colleges.map((c,i) =>
+      `<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid #f1f5f9">
+        <span>${c}</span><button class="btn btn-danger btn-sm" onclick="removeCollege(${i})">Del</button></div>`).join('');
+  }
+  async function addCollege() {
+    if (!isAdmin()) return;
+    const n = document.getElementById('newCollege').value.trim();
+    if (!n || data.colleges.includes(n)) return showToast('Invalid name');
+    data.colleges.push(n); await saveSettings();
+    document.getElementById('newCollege').value = ''; renderCollegeList(); showToast('Added');
+  }
+  async function removeCollege(i) {
+    if (!isAdmin() || !confirm('Delete?')) return;
+    data.colleges.splice(i,1); await saveSettings(); renderCollegeList();
+  }
+
+  // Batches
+  function renderBatchList() {
+    const list = getBatchesForYear(currentYear);
+    document.getElementById('batchList').innerHTML = list.map((b,i) =>
+      `<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid #f1f5f9">
+        <span>${b}</span><button class="btn btn-danger btn-sm" onclick="removeBatch(${i})">Del</button></div>`).join('')
+      || '<p style="color:var(--muted);padding:.5rem 0">No time batches yet</p>';
+  }
+  async function addBatch() {
+    if (!isAdmin()) return;
+    const n = document.getElementById('newBatch').value.trim();
+    const list = getBatchesForYear(currentYear);
+    if (!n || list.includes(n)) return showToast('Invalid name');
+    list.push(n); await saveSettings();
+    document.getElementById('newBatch').value = ''; renderBatchList(); showToast('Added');
+  }
+  async function removeBatch(i) {
+    if (!isAdmin() || !confirm('Delete?')) return;
+    getBatchesForYear(currentYear).splice(i,1); await saveSettings(); renderBatchList();
+  }
+
+  // Teachers
+  function populateTeacherRoleSelect() {
+    const sel = document.getElementById('newTeacherRole');
+    if (!sel) return;
+    sel.innerHTML = `<option value="admin">Admin (Full Access)</option>` +
+      data.subjects.map(s => `<option value="${s}">${s} Teacher</option>`).join('');
+  }
+  function renderTeacherList() {
+    if (!isAdmin()) return;
+    document.getElementById('teacherList').innerHTML = data.users.map(u =>
+      `<div style="display:flex;justify-content:space-between;padding:.45rem 0;border-bottom:1px solid #f1f5f9">
+        <span>${u.email} <span class="badge badge-role">${u.role === 'admin' ? 'Admin' : (u.subjects||[]).join(', ')}</span></span>
+        ${u.uid !== currentUser.uid ? `<button class="btn btn-danger btn-sm" onclick="deleteTeacher('${u.uid}')">Del</button>` : ''}
+      </div>`).join('') || '<p style="color:var(--muted)">No teachers yet</p>';
+  }
+  async function createTeacher() {
+    if (!isAdmin()) return;
+    const email = document.getElementById('newTeacherEmail').value.trim();
+    const pass = document.getElementById('newTeacherPass').value;
+    const roleVal = document.getElementById('newTeacherRole').value;
+    if (!email || pass.length < 6) return showToast('Email + password (min 6) required');
+    try {
+      const cred = await auth.createUserWithEmailAndPassword(email, pass);
+      const role = roleVal === 'admin' ? 'admin' : 'teacher';
+      const subjects = roleVal === 'admin' ? [] : [roleVal];
+      await db.collection('users').doc(cred.user.uid).set({
+        email, role, subjects, createdAt: new Date().toISOString()
       });
+      showToast('Teacher created! Logging out... Please login again as Admin.');
+      setTimeout(() => auth.signOut(), 1200);
+    } catch (e) {
+      showToast('Error: ' + e.message);
+    }
+  }
+  async function deleteTeacher(uid) {
+    if (!confirm('Remove this teacher role?')) return;
+    await db.collection('users').doc(uid).delete();
+    data.users = data.users.filter(u => u.uid !== uid);
+    renderTeacherList(); showToast('Removed');
+  }
+
+  // Chips
+  function renderCollegeChips() {
+    selectedCollege = null;
+    document.getElementById('collegeChips').innerHTML = data.colleges.map(c =>
+      `<span class="chip" onclick="selectCollege(this,'${c.replace(/'/g,"\\'")}')">${c}</span>`).join('');
+  }
+  function selectCollege(el, name) {
+    document.querySelectorAll('#collegeChips .chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected'); selectedCollege = name;
+  }
+  function renderBatchChips() {
+    selectedBatch = null;
+    const y = +document.getElementById('newHscYear').value || currentYear;
+    const list = getBatchesForYear(y);
+    document.getElementById('batchChips').innerHTML = list.length
+      ? list.map(b => `<span class="chip" onclick="selectBatch(this,'${b.replace(/'/g,"\\'")}')">${b}</span>`).join('')
+      : '<span style="color:var(--muted);font-size:.85rem">No batches. Add in Settings.</span>';
+  }
+  function selectBatch(el, name) {
+    document.querySelectorAll('#batchChips .chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected'); selectedBatch = name;
+  }
+  function renderSubjectChips() {
+    selectedSubjects = [];
+    document.getElementById('subjectChips').innerHTML = allowedSubjects().map(s =>
+      `<span class="chip" onclick="toggleSubject(this,'${s}')">${s}</span>`).join('');
+  }
+  function toggleSubject(el, name) {
+    el.classList.toggle('selected');
+    if (el.classList.contains('selected')) {
+      if (!selectedSubjects.includes(name)) selectedSubjects.push(name);
+    } else {
+      selectedSubjects = selectedSubjects.filter(x => x !== name);
+    }
+  }
+
+  // ADD STUDENT (Teachers + Admin)
+  async function addStudent() {
+    const id = document.getElementById('newId').value.trim();
+    const name = document.getElementById('newName').value.trim();
+    const hscYear = +document.getElementById('newHscYear').value;
+    if (!id || !name) return showToast('ID and Name required');
+    if (!selectedCollege) return showToast('Select College');
+    if (selectedSubjects.length === 0) return showToast('Select subject');
+    if (data.students.find(s => s.id.toLowerCase() === id.toLowerCase())) return showToast('ID exists');
+
+    const payments = {};
+    MONTHS.forEach(m => {
+      payments[m.key] = {};
+      selectedSubjects.forEach(sub => payments[m.key][sub] = 0);
     });
 
-    // Fees
-    function loadFeeInputs() {
-      const box = document.getElementById('feeInputs');
-      box.innerHTML = data.subjects.map(sub => `
-        <div class="form-group" style="margin-bottom:.7rem">
-          <label>${sub} (৳)</label>
-          <input type="number" id="fee_${sub}" min="0" step="50" value="${data.fees[sub]||500}" />
-        </div>`).join('');
-    }
-    async function saveFees() {
-      data.subjects.forEach(sub => {
-        data.fees[sub] = parseInt(document.getElementById('fee_'+sub)?.value) || 0;
-      });
-      await saveSettings(); showToast('Fees saved');
-    }
+    const student = { name, hscYear, college: selectedCollege, batch: selectedBatch || '—', subjects: [...selectedSubjects], payments };
+    await db.collection('students').doc(id).set(student);
+    data.students.push({ id, ...student });
+    showToast(name + ' added');
+    document.getElementById('newId').value = '';
+    document.getElementById('newName').value = '';
+    setYear(hscYear);
+    document.querySelector('[data-tab="students"]').click();
+  }
 
-    // Subjects
-    function renderSubjectList() {
-      document.getElementById('subjectList').innerHTML = data.subjects.map((s,i) =>
-        `<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid #f1f5f9">
-          <span>${s}</span>
-          ${isAdmin() ? `<button class="btn btn-danger btn-sm" onclick="removeSubject(${i})">Del</button>` : ''}
-        </div>`).join('');
-    }
-    async function addSubject() {
-      if (!isAdmin()) return;
-      const n = document.getElementById('newSubject').value.trim();
-      if (!n || data.subjects.includes(n)) return showToast('Invalid name');
-      data.subjects.push(n);
-      data.fees[n] = 500;
-      await saveSettings();
-      document.getElementById('newSubject').value = '';
-      renderSubjectList(); loadFeeInputs(); populateTeacherRoleSelect();
-      showToast('Subject added');
-    }
-    async function removeSubject(i) {
-      if (!isAdmin() || !confirm('Delete subject?')) return;
-      const sub = data.subjects[i];
-      data.subjects.splice(i,1);
-      delete data.fees[sub];
-      await saveSettings();
-      renderSubjectList(); loadFeeInputs(); populateTeacherRoleSelect();
-    }
+  function calcCurrentMonthDue(s) {
+    const now = new Date();
+    const monthKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    let total = 0;
+    const subs = (s.subjects || []).filter(sub => allowedSubjects().includes(sub));
+    subs.forEach(sub => {
+      const fee = data.fees[sub] || 0;
+      const paid = (s.payments?.[monthKey]?.[sub]) || 0;
+      total += Math.max(0, fee - paid);
+    });
+    return total;
+  }
 
-    // Colleges
-    function renderCollegeList() {
-      document.getElementById('collegeList').innerHTML = data.colleges.map((c,i) =>
-        `<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid #f1f5f9">
-          <span>${c}</span><button class="btn btn-danger btn-sm" onclick="removeCollege(${i})">Del</button></div>`).join('');
+  function renderStudents(filter = null) {
+    let list = studentsOfYear();
+    if (!isAdmin()) {
+      list = list.filter(s => (s.subjects || []).some(sub => allowedSubjects().includes(sub)));
     }
-    async function addCollege() {
-      const n = document.getElementById('newCollege').value.trim();
-      if (!n || data.colleges.includes(n)) return showToast('Invalid name');
-      data.colleges.push(n); await saveSettings();
-      document.getElementById('newCollege').value=''; renderCollegeList(); showToast('Added');
+    if (filter) {
+      const q = filter.toLowerCase();
+      list = list.filter(s => s.id.toLowerCase().includes(q) || s.name.toLowerCase().includes(q) ||
+        (s.college||'').toLowerCase().includes(q) || (s.batch||'').toLowerCase().includes(q));
     }
-    async function removeCollege(i) {
-      if (!confirm('Delete?')) return;
-      data.colleges.splice(i,1); await saveSettings(); renderCollegeList();
-    }
+    const tbody = document.getElementById('studentTableBody');
+    const empty = document.getElementById('emptyStudents');
+    if (list.length === 0) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    tbody.innerHTML = list.map(s => {
+      const due = calcCurrentMonthDue(s);
+      const badge = due > 0 ? `<span class="badge badge-due">${due} ৳ Due</span>` : `<span class="badge badge-paid">Paid</span>`;
+      const visSubjects = (s.subjects || []).filter(sub => allowedSubjects().includes(sub));
+      return `<tr>
+        <td><strong>${s.id}</strong></td><td>${s.name}</td>
+        <td><span class="badge badge-college">${s.college||'—'}</span></td>
+        <td><span class="badge badge-batch">${s.batch||'—'}</span></td>
+        <td>${visSubjects.join(', ')}</td><td>${badge}</td>
+        <td>
+          <button class="btn btn-primary btn-sm" onclick="openPayment('${s.id}')">Pay</button>
+          ${isAdmin() ? `<button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.id}')">Del</button>` : ''}
+        </td></tr>`;
+    }).join('');
+  }
 
-    // Batches
-    function renderBatchList() {
-      const list = getBatchesForYear(currentYear);
-      document.getElementById('batchList').innerHTML = list.map((b,i) =>
-        `<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid #f1f5f9">
-          <span>${b}</span><button class="btn btn-danger btn-sm" onclick="removeBatch(${i})">Del</button></div>`).join('')
-        || '<p style="color:var(--muted);padding:.5rem 0">No time batches yet</p>';
-    }
-    async function addBatch() {
-      const n = document.getElementById('newBatch').value.trim();
-      const list = getBatchesForYear(currentYear);
-      if (!n || list.includes(n)) return showToast('Invalid name');
-      list.push(n); await saveSettings();
-      document.getElementById('newBatch').value=''; renderBatchList(); showToast('Added');
-    }
-    async function removeBatch(i) {
-      if (!confirm('Delete?')) return;
-      getBatchesForYear(currentYear).splice(i,1); await saveSettings(); renderBatchList();
-    }
+  function searchStudent() { renderStudents(document.getElementById('searchInput').value.trim() || null); }
+  function clearSearch() { document.getElementById('searchInput').value = ''; renderStudents(); }
 
-    // Teachers
-    function populateTeacherRoleSelect() {
-      const sel = document.getElementById('newTeacherRole');
-      if (!sel) return;
-      sel.innerHTML = `<option value="admin">Admin (Full Access)</option>` +
-        data.subjects.map(s => `<option value="${s}">${s} Teacher</option>`).join('');
-    }
-    function renderTeacherList() {
-      if (!isAdmin()) return;
-      document.getElementById('teacherList').innerHTML = data.users.map(u =>
-        `<div style="display:flex;justify-content:space-between;padding:.45rem 0;border-bottom:1px solid #f1f5f9">
-          <span>${u.email} <span class="badge badge-role">${u.role === 'admin' ? 'Admin' : (u.subjects||[]).join(', ') || u.role}</span></span>
-          ${u.uid !== currentUser.uid ? `<button class="btn btn-danger btn-sm" onclick="deleteTeacher('${u.uid}')">Del</button>` : ''}
-        </div>`).join('') || '<p style="color:var(--muted)">No teachers yet</p>';
-    }
-    async function createTeacher() {
-      if (!isAdmin()) return;
-      const email = document.getElementById('newTeacherEmail').value.trim();
-      const pass = document.getElementById('newTeacherPass').value;
-      const roleVal = document.getElementById('newTeacherRole').value;
-      if (!email || pass.length < 6) return showToast('Email + password (min 6) required');
+  async function deleteStudent(id) {
+    if (!isAdmin() || !confirm('Delete ' + id + '?')) return;
+    await db.collection('students').doc(id).delete();
+    data.students = data.students.filter(s => s.id !== id);
+    renderStudents(); showToast('Deleted');
+  }
 
-      try {
-        // Create auth user
-        const cred = await auth.createUserWithEmailAndPassword(email, pass);
-        const role = roleVal === 'admin' ? 'admin' : 'teacher';
-        const subjects = roleVal === 'admin' ? [] : [roleVal];
+  function populateMonthSelect(id) {
+    const sel = document.getElementById(id); if (!sel) return;
+    sel.innerHTML = MONTHS.map((m,i) => `<option value="${m.key}" ${i===0?'selected':''}>${m.label}</option>`).join('');
+  }
+  function populateBatchSelect() {
+    const sel = document.getElementById('batchViewSelect'); if (!sel) return;
+    const list = getBatchesForYear(currentYear);
+    sel.innerHTML = `<option value="all">All</option>` + list.map(b => `<option value="${b}">${b}</option>`).join('');
+  }
 
-        await db.collection('users').doc(cred.user.uid).set({
-          email, role, subjects, createdAt: new Date().toISOString()
-        });
+  function getMonthStats(monthKey) {
+    let expected = 0, collected = 0;
+    const subjectStats = {};
+    allowedSubjects().forEach(sub => subjectStats[sub] = {expected:0, collected:0});
+    const dueStudents = [], allStudents = [];
 
-        // Sign back in as admin (createUser auto signs in as new user)
-        // We need to re-login admin. For simplicity ask admin to re-login or use secondary app.
-        // Better approach: use a temporary secondary auth (complex). 
-        // Simple: logout and ask to login again, or keep admin session by not using create from client in production.
-        // For now: after create, sign out new user is not possible easily without secondary app.
-        // Workaround: show message and reload.
-
-        data.users.push({uid: cred.user.uid, email, role, subjects});
-        showToast('Teacher created! Please logout and login again as Admin.');
-        document.getElementById('newTeacherEmail').value = '';
-        document.getElementById('newTeacherPass').value = '';
-        renderTeacherList();
-
-        // Force re-login as the createUser switches session
-        setTimeout(() => { auth.signOut(); }, 1500);
-      } catch (e) {
-        showToast('Error: ' + e.message);
-      }
-    }
-    async function deleteTeacher(uid) {
-      if (!confirm('Delete this teacher? (Auth account remains, only role removed)')) return;
-      await db.collection('users').doc(uid).delete();
-      data.users = data.users.filter(u => u.uid !== uid);
-      renderTeacherList();
-      showToast('Removed');
-    }
-
-    // Chips for Add Student
-    function renderCollegeChips() {
-      selectedCollege = null;
-      document.getElementById('collegeChips').innerHTML = data.colleges.map(c =>
-        `<span class="chip" onclick="selectCollege(this,'${c.replace(/'/g,"\\'")}')">${c}</span>`).join('');
-    }
-    function selectCollege(el, name) {
-      document.querySelectorAll('#collegeChips .chip').forEach(c => c.classList.remove('selected'));
-      el.classList.add('selected'); selectedCollege = name;
-    }
-    function renderBatchChips() {
-      selectedBatch = null;
-      const y = +document.getElementById('newHscYear').value || currentYear;
-      const list = getBatchesForYear(y);
-      document.getElementById('batchChips').innerHTML = list.length
-        ? list.map(b => `<span class="chip" onclick="selectBatch(this,'${b.replace(/'/g,"\\'")}')">${b}</span>`).join('')
-        : '<span style="color:var(--muted);font-size:.85rem">No batches. Add in Settings.</span>';
-    }
-    function selectBatch(el, name) {
-      document.querySelectorAll('#batchChips .chip').forEach(c => c.classList.remove('selected'));
-      el.classList.add('selected'); selectedBatch = name;
-    }
-    function renderSubjectChips() {
-      selectedSubjects = [];
-      const allowed = allowedSubjects();
-      document.getElementById('subjectChips').innerHTML = allowed.map(s =>
-        `<span class="chip" onclick="toggleSubject(this,'${s}')">${s}</span>`).join('');
-    }
-    function toggleSubject(el, name) {
-      el.classList.toggle('selected');
-      if (el.classList.contains('selected')) {
-        if (!selectedSubjects.includes(name)) selectedSubjects.push(name);
-      } else {
-        selectedSubjects = selectedSubjects.filter(x => x !== name);
-      }
-    }
-
-    async function addStudent() {
-      if (!isAdmin()) return showToast('Only Admin can add students');
-      const id = document.getElementById('newId').value.trim();
-      const name = document.getElementById('newName').value.trim();
-      const hscYear = +document.getElementById('newHscYear').value;
-      if (!id || !name) return showToast('ID and Name required');
-      if (!selectedCollege) return showToast('Select College');
-      if (selectedSubjects.length === 0) return showToast('Select at least one subject');
-      if (data.students.find(s => s.id.toLowerCase() === id.toLowerCase())) return showToast('ID exists');
-
-      const payments = {};
-      MONTHS.forEach(m => {
-        payments[m.key] = {};
-        selectedSubjects.forEach(sub => payments[m.key][sub] = 0);
-      });
-
-      const student = { name, hscYear, college: selectedCollege, batch: selectedBatch || '—', subjects: [...selectedSubjects], payments };
-      await db.collection('students').doc(id).set(student);
-      data.students.push({ id, ...student });
-      showToast(name + ' added');
-      document.getElementById('newId').value = '';
-      document.getElementById('newName').value = '';
-      setYear(hscYear);
-      document.querySelector('[data-tab="students"]').click();
-    }
-
-    function calcCurrentMonthDue(s) {
-      const now = new Date();
-      const monthKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-      let total = 0;
-      const subs = (s.subjects || []).filter(sub => allowedSubjects().includes(sub));
-      subs.forEach(sub => {
+    studentsOfYear().forEach(s => {
+      const visSubs = (s.subjects || []).filter(sub => allowedSubjects().includes(sub));
+      if (visSubs.length === 0) return;
+      let studentDue = 0;
+      const dueDetail = {};
+      visSubs.forEach(sub => {
         const fee = data.fees[sub] || 0;
         const paid = (s.payments?.[monthKey]?.[sub]) || 0;
-        total += Math.max(0, fee - paid);
+        const due = Math.max(0, fee - paid);
+        expected += fee; collected += Math.min(paid, fee);
+        if (subjectStats[sub]) {
+          subjectStats[sub].expected += fee;
+          subjectStats[sub].collected += Math.min(paid, fee);
+        }
+        dueDetail[sub] = {paid, due, fee}; studentDue += due;
       });
-      return total;
-    }
+      const row = {id:s.id, name:s.name, college:s.college, batch:s.batch, due:studentDue, detail:dueDetail};
+      allStudents.push(row);
+      if (studentDue > 0) dueStudents.push(row);
+    });
+    return {expected, collected, due: expected - collected, subjectStats, dueStudents, allStudents};
+  }
 
-    function renderStudents(filter = null) {
-      let list = studentsOfYear();
-      // teachers only see students who have their subject
-      if (!isAdmin()) {
-        list = list.filter(s => (s.subjects||[]).some(sub => allowedSubjects().includes(sub)));
-      }
-      if (filter) {
-        const q = filter.toLowerCase();
-        list = list.filter(s => s.id.toLowerCase().includes(q) || s.name.toLowerCase().includes(q) ||
-          (s.college||'').toLowerCase().includes(q) || (s.batch||'').toLowerCase().includes(q));
-      }
-      const tbody = document.getElementById('studentTableBody');
-      const empty = document.getElementById('emptyStudents');
-      if (list.length === 0) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
-      empty.style.display = 'none';
-      tbody.innerHTML = list.map(s => {
-        const due = calcCurrentMonthDue(s);
-        const badge = due > 0 ? `<span class="badge badge-due">${due} ৳ Due</span>` : `<span class="badge badge-paid">Paid</span>`;
-        const visSubjects = (s.subjects||[]).filter(sub => allowedSubjects().includes(sub));
-        return `<tr>
-          <td><strong>${s.id}</strong></td><td>${s.name}</td>
-          <td><span class="badge badge-college">${s.college||'—'}</span></td>
-          <td><span class="badge badge-batch">${s.batch||'—'}</span></td>
-          <td>${visSubjects.join(', ')}</td><td>${badge}</td>
-          <td>
-            <button class="btn btn-primary btn-sm" onclick="openPayment('${s.id}')">Pay</button>
-            ${isAdmin() ? `<button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.id}')">Del</button>` : ''}
-          </td></tr>`;
-      }).join('');
-    }
+  function statusBadge(d) {
+    if (!d) return '—';
+    if (d.due > 0 && d.paid > 0) return `<span class="badge badge-partial">${d.paid}/${d.fee}</span>`;
+    if (d.due > 0) return `<span class="badge badge-due">${d.due} Due</span>`;
+    return `<span class="badge badge-paid">Paid</span>`;
+  }
 
-    function searchStudent() { renderStudents(document.getElementById('searchInput').value.trim() || null); }
-    function clearSearch() { document.getElementById('searchInput').value = ''; renderStudents(); }
+  function renderMonthView() {
+    const monthKey = document.getElementById('monthViewSelect').value;
+    const batchFilter = document.getElementById('batchViewSelect').value;
+    const stats = getMonthStats(monthKey);
+    let list = stats.allStudents;
+    if (batchFilter && batchFilter !== 'all') list = list.filter(s => (s.batch || '') === batchFilter);
 
-    async function deleteStudent(id) {
-      if (!isAdmin() || !confirm('Delete ' + id + '?')) return;
-      await db.collection('students').doc(id).delete();
-      data.students = data.students.filter(s => s.id !== id);
-      renderStudents(); showToast('Deleted');
-    }
+    let expected = 0, collected = 0, dueTotal = 0;
+    list.forEach(s => {
+      dueTotal += s.due;
+      Object.values(s.detail).forEach(d => { if (d) { expected += d.fee; collected += Math.min(d.paid, d.fee); } });
+    });
 
-    function populateMonthSelect(id) {
-      const sel = document.getElementById(id); if (!sel) return;
-      sel.innerHTML = MONTHS.map((m,i) => `<option value="${m.key}" ${i===0?'selected':''}>${m.label}</option>`).join('');
-    }
-    function populateBatchSelect() {
-      const sel = document.getElementById('batchViewSelect'); if (!sel) return;
-      const list = getBatchesForYear(currentYear);
-      sel.innerHTML = `<option value="all">All</option>` + list.map(b => `<option value="${b}">${b}</option>`).join('');
-    }
+    document.getElementById('monthViewStats').innerHTML = `
+      <div class="stat-card expected"><div class="label">Expected</div><div class="value">${expected} ৳</div></div>
+      <div class="stat-card collected"><div class="label">Collected</div><div class="value">${collected} ৳</div></div>
+      <div class="stat-card due"><div class="label">Due</div><div class="value">${dueTotal} ৳</div></div>
+      <div class="stat-card"><div class="label">Students</div><div class="value">${list.length}</div></div>`;
 
-    function getMonthStats(monthKey) {
-      let expected = 0, collected = 0;
-      const subjectStats = {};
-      allowedSubjects().forEach(sub => subjectStats[sub] = {expected:0, collected:0});
-      const dueStudents = [], allStudents = [];
+    const tbody = document.getElementById('monthViewBody');
+    const empty = document.getElementById('monthViewEmpty');
+    if (list.length === 0) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    tbody.innerHTML = list.map(s => {
+      const subStatus = allowedSubjects().map(sub => statusBadge(s.detail[sub])).join(' ');
+      return `<tr>
+        <td><strong>${s.id}</strong></td><td>${s.name}</td><td>${s.college||'—'}</td>
+        <td><span class="badge badge-batch">${s.batch||'—'}</span></td>
+        <td>${subStatus}</td>
+        <td>${s.due > 0 ? `<span class="badge badge-due">${s.due} ৳</span>` : `<span class="badge badge-paid">0</span>`}</td>
+        <td><button class="btn btn-primary btn-sm" onclick="openPayment('${s.id}')">Pay</button></td>
+      </tr>`;
+    }).join('');
+  }
 
-      studentsOfYear().forEach(s => {
-        const visSubs = (s.subjects||[]).filter(sub => allowedSubjects().includes(sub));
-        if (visSubs.length === 0) return;
-        let studentDue = 0;
-        const dueDetail = {};
-        visSubs.forEach(sub => {
-          const fee = data.fees[sub] || 0;
-          const paid = (s.payments?.[monthKey]?.[sub]) || 0;
-          const due = Math.max(0, fee - paid);
-          expected += fee; collected += Math.min(paid, fee);
-          if (subjectStats[sub]) { subjectStats[sub].expected += fee; subjectStats[sub].collected += Math.min(paid, fee); }
-          dueDetail[sub] = {paid, due, fee}; studentDue += due;
-        });
-        const row = {id:s.id, name:s.name, college:s.college, batch:s.batch, due:studentDue, detail:dueDetail, subjects:visSubs};
-        allStudents.push(row);
-        if (studentDue > 0) dueStudents.push(row);
-      });
-      return {expected, collected, due: expected-collected, subjectStats, dueStudents, allStudents};
-    }
+  function renderSummary() {
+    const monthKey = document.getElementById('summaryMonth').value;
+    const stats = getMonthStats(monthKey);
+    const rate = (data.commissionRate || 30) / 100;
+    const adminComm = Math.round(stats.collected * rate);
+    const teacherShare = stats.collected - adminComm;
 
-    function statusBadge(d) {
-      if (!d) return '—';
-      if (d.due > 0 && d.paid > 0) return `<span class="badge badge-partial">${d.paid}/${d.fee}</span>`;
-      if (d.due > 0) return `<span class="badge badge-due">${d.due} Due</span>`;
-      return `<span class="badge badge-paid">Paid</span>`;
-    }
-
-    function renderMonthView() {
-      const monthKey = document.getElementById('monthViewSelect').value;
-      const batchFilter = document.getElementById('batchViewSelect').value;
-      const stats = getMonthStats(monthKey);
-      let list = stats.allStudents;
-      if (batchFilter && batchFilter !== 'all') list = list.filter(s => (s.batch||'') === batchFilter);
-
-      let expected=0, collected=0, dueTotal=0;
-      list.forEach(s => {
-        dueTotal += s.due;
-        Object.values(s.detail).forEach(d => { if(d){ expected += d.fee; collected += Math.min(d.paid, d.fee); }});
-      });
-
-      document.getElementById('monthViewStats').innerHTML = `
-        <div class="stat-card expected"><div class="label">Expected</div><div class="value">${expected} ৳</div></div>
-        <div class="stat-card collected"><div class="label">Collected</div><div class="value">${collected} ৳</div></div>
-        <div class="stat-card due"><div class="label">Due</div><div class="value">${dueTotal} ৳</div></div>
-        <div class="stat-card"><div class="label">Students</div><div class="value">${list.length}</div></div>`;
-
-      const tbody = document.getElementById('monthViewBody');
-      const empty = document.getElementById('monthViewEmpty');
-      if (list.length === 0) { tbody.innerHTML=''; empty.style.display='block'; return; }
-      empty.style.display = 'none';
-
-      // dynamic subject columns simplified: show status of allowed subjects
-      tbody.innerHTML = list.map(s => {
-        const subStatus = allowedSubjects().map(sub => statusBadge(s.detail[sub])).join(' ');
-        return `<tr>
-          <td><strong>${s.id}</strong></td><td>${s.name}</td><td>${s.college||'—'}</td>
-          <td><span class="badge badge-batch">${s.batch||'—'}</span></td>
-          <td>${subStatus}</td>
-          <td>${s.due > 0 ? `<span class="badge badge-due">${s.due} ৳</span>` : `<span class="badge badge-paid">0</span>`}</td>
-          <td><button class="btn btn-primary btn-sm" onclick="openPayment('${s.id}')">Pay</button></td>
-        </tr>`;
-      }).join('');
-    }
-
-    function renderSummary() {
-      const monthKey = document.getElementById('summaryMonth').value;
-      const stats = getMonthStats(monthKey);
+    if (isAdmin()) {
+      document.getElementById('summaryStats').innerHTML = `
+        <div class="stat-card expected"><div class="label">Expected</div><div class="value">${stats.expected} ৳</div></div>
+        <div class="stat-card collected"><div class="label">Total Collected</div><div class="value">${stats.collected} ৳</div></div>
+        <div class="stat-card"><div class="label">All Teachers Share</div><div class="value" style="color:#059669">${teacherShare} ৳</div></div>
+        <div class="stat-card due"><div class="label">My Commission (${data.commissionRate}%)</div><div class="value">${adminComm} ৳</div></div>`;
+    } else {
       document.getElementById('summaryStats').innerHTML = `
         <div class="stat-card expected"><div class="label">Expected</div><div class="value">${stats.expected} ৳</div></div>
         <div class="stat-card collected"><div class="label">Collected</div><div class="value">${stats.collected} ৳</div></div>
-        <div class="stat-card due"><div class="label">Due</div><div class="value">${stats.due} ৳</div></div>
-        <div class="stat-card"><div class="label">Rate</div><div class="value">${stats.expected ? Math.round(stats.collected/stats.expected*100) : 0}%</div></div>`;
+        <div class="stat-card"><div class="label">My Share</div><div class="value" style="color:#059669">${teacherShare} ৳</div></div>
+        <div class="stat-card due"><div class="label">Admin Share (${data.commissionRate}%)</div><div class="value">${adminComm} ৳</div></div>`;
+    }
 
-      document.getElementById('subjectBreakdown').innerHTML = allowedSubjects().map(sub => {
-        const s = stats.subjectStats[sub] || {expected:0,collected:0};
-        return `<tr><td><strong>${sub}</strong></td><td>${s.expected} ৳</td>
-          <td style="color:var(--success)">${s.collected} ৳</td>
-          <td style="color:var(--danger)">${s.expected - s.collected} ৳</td></tr>`;
+    const teacherLabel = isAdmin() ? 'Teacher Share' : 'My Share';
+    const adminLabel = isAdmin() ? 'Admin Commission' : 'Admin Share';
+    const thead = document.querySelector('#tab-summary .table-wrap table thead tr');
+    if (thead) {
+      thead.innerHTML = `<th>Subject</th><th>Expected</th><th>Collected</th><th>${teacherLabel}</th><th>${adminLabel}</th>`;
+    }
+
+    document.getElementById('subjectBreakdown').innerHTML = allowedSubjects().map(sub => {
+      const s = stats.subjectStats[sub] || {expected:0, collected:0};
+      const comm = Math.round(s.collected * rate);
+      const teacher = s.collected - comm;
+      return `<tr>
+        <td><strong>${sub}</strong></td>
+        <td>${s.expected} ৳</td>
+        <td style="color:var(--success)">${s.collected} ৳</td>
+        <td style="color:#059669">${teacher} ৳</td>
+        <td style="color:var(--danger)">${comm} ৳</td>
+      </tr>`;
+    }).join('');
+
+    const tbody = document.getElementById('dueStudentsBody');
+    const noDue = document.getElementById('noDueMsg');
+    if (stats.dueStudents.length === 0) {
+      tbody.innerHTML = ''; noDue.style.display = 'block';
+    } else {
+      noDue.style.display = 'none';
+      tbody.innerHTML = stats.dueStudents.map(s => `
+        <tr>
+          <td><strong>${s.id}</strong></td><td>${s.name}</td><td>${s.college||'—'}</td><td>${s.batch||'—'}</td>
+          <td><span class="badge badge-due">${s.due} ৳</span></td>
+          <td><button class="btn btn-primary btn-sm" onclick="openPayment('${s.id}')">Pay</button></td>
+        </tr>`).join('');
+    }
+  }
+
+  function openPayment(id) {
+    currentStudentId = id;
+    const s = data.students.find(x => x.id === id); if (!s) return;
+    document.getElementById('modalTitle').textContent = `${s.name} (${s.id}) · HSC ${s.hscYear} · ${s.college||''} · ${s.batch||''}`;
+
+    const visSubs = (s.subjects || []).filter(sub => allowedSubjects().includes(sub));
+    let totalPaid = 0, totalDue = 0;
+    MONTHS.forEach(m => visSubs.forEach(sub => {
+      const fee = data.fees[sub] || 0;
+      const paid = (s.payments?.[m.key]?.[sub]) || 0;
+      totalPaid += paid; totalDue += Math.max(0, fee - paid);
+    }));
+
+    document.getElementById('modalSummary').innerHTML =
+      `Year Paid: <b style="color:var(--success)">${totalPaid} ৳</b> | Year Due: <b style="color:var(--danger)">${totalDue} ৳</b><br>
+      <small style="color:#64748b">Each month shows its own Due below</small>`;
+
+    document.getElementById('monthGrid').innerHTML = MONTHS.map(m => {
+      const rows = visSubs.map(sub => {
+        const fee = data.fees[sub] || 0;
+        const paid = (s.payments?.[m.key]?.[sub]) || 0;
+        const due = Math.max(0, fee - paid);
+        const badge = paid >= fee && fee > 0 ? '<span class="badge badge-paid">Paid</span>' :
+          paid > 0 ? '<span class="badge badge-partial">Partial</span>' : '<span class="badge badge-due">Due</span>';
+        return `<div class="subject-row">
+          <strong style="min-width:80px">${sub}</strong>
+          <span style="font-size:.85rem;color:var(--muted)">Fee ${fee} · Paid ${paid} · Due ${due} ${badge}</span>
+          <input type="number" class="pay-input" min="0" max="${fee}" value="${paid}" data-month="${m.key}" data-subject="${sub}" />
+          <button class="btn btn-success btn-sm" onclick="markFull('${m.key}','${sub}',${fee})">Full</button>
+        </div>`;
       }).join('');
+      return `<div class="month-card"><h4>${m.label}</h4>${rows || '<p style="color:var(--muted)">No subjects</p>'}</div>`;
+    }).join('');
+    document.getElementById('paymentModal').classList.add('show');
+  }
 
-      const tbody = document.getElementById('dueStudentsBody');
-      const noDue = document.getElementById('noDueMsg');
-      if (stats.dueStudents.length === 0) { tbody.innerHTML=''; noDue.style.display='block'; }
-      else {
-        noDue.style.display = 'none';
-        tbody.innerHTML = stats.dueStudents.map(s => `
-          <tr>
-            <td><strong>${s.id}</strong></td><td>${s.name}</td><td>${s.college||'—'}</td><td>${s.batch||'—'}</td>
-            <td><span class="badge badge-due">${s.due} ৳</span></td>
-            <td><button class="btn btn-primary btn-sm" onclick="openPayment('${s.id}')">Pay</button></td>
-          </tr>`).join('');
-      }
-    }
+  async function closeModal() {
+    await savePaymentInputs();
+    document.getElementById('paymentModal').classList.remove('show');
+    currentStudentId = null;
+    renderStudents();
+    if (document.getElementById('tab-summary').style.display !== 'none') renderSummary();
+    if (document.getElementById('tab-monthview').style.display !== 'none') renderMonthView();
+  }
 
-    function openPayment(id) {
-      currentStudentId = id;
-      const s = data.students.find(x => x.id === id); if (!s) return;
-      document.getElementById('modalTitle').textContent = `${s.name} (${s.id}) · HSC ${s.hscYear} · ${s.college||''} · ${s.batch||''}`;
-
-      const visSubs = (s.subjects||[]).filter(sub => allowedSubjects().includes(sub));
-      let totalPaid = 0, totalDue = 0;
-      MONTHS.forEach(m => visSubs.forEach(sub => {
-        const fee = data.fees[sub]||0;
-        const paid = (s.payments?.[m.key]?.[sub])||0;
-        totalPaid += paid; totalDue += Math.max(0, fee - paid);
-      }));
-
-      document.getElementById('modalSummary').innerHTML =
-        `Year Paid: <b style="color:var(--success)">${totalPaid} ৳</b> | Year Due: <b style="color:var(--danger)">${totalDue} ৳</b><br>
-        <small style="color:#64748b">Each month shows its own Due below</small>`;
-
-      document.getElementById('monthGrid').innerHTML = MONTHS.map(m => {
-        const rows = visSubs.map(sub => {
-          const fee = data.fees[sub]||0;
-          const paid = (s.payments?.[m.key]?.[sub])||0;
-          const due = Math.max(0, fee - paid);
-          const badge = paid >= fee && fee > 0 ? '<span class="badge badge-paid">Paid</span>' :
-            paid > 0 ? '<span class="badge badge-partial">Partial</span>' : '<span class="badge badge-due">Due</span>';
-          return `<div class="subject-row">
-            <strong style="min-width:80px">${sub}</strong>
-            <span style="font-size:.85rem;color:var(--muted)">Fee ${fee} · Paid ${paid} · Due ${due} ${badge}</span>
-            <input type="number" class="pay-input" min="0" max="${fee}" value="${paid}" data-month="${m.key}" data-subject="${sub}" />
-            <button class="btn btn-success btn-sm" onclick="markFull('${m.key}','${sub}',${fee})">Full</button>
-          </div>`;
-        }).join('');
-        return `<div class="month-card"><h4>${m.label}</h4>${rows || '<p style="color:var(--muted)">No subjects</p>'}</div>`;
-      }).join('');
-      document.getElementById('paymentModal').classList.add('show');
-    }
-
-    async function closeModal() {
-      await savePaymentInputs();
-      document.getElementById('paymentModal').classList.remove('show');
-      currentStudentId = null;
-      renderStudents();
-      if (document.getElementById('tab-summary').style.display !== 'none') renderSummary();
-      if (document.getElementById('tab-monthview').style.display !== 'none') renderMonthView();
-    }
-
-    async function savePaymentInputs() {
-      if (!currentStudentId) return;
-      const s = data.students.find(x => x.id === currentStudentId); if (!s) return;
-      document.querySelectorAll('.pay-input').forEach(inp => {
-        const month = inp.dataset.month, sub = inp.dataset.subject;
-        let val = parseInt(inp.value)||0;
-        const fee = data.fees[sub]||0;
-        if (val > fee) val = fee; if (val < 0) val = 0;
-        if (!s.payments[month]) s.payments[month] = {};
-        s.payments[month][sub] = val;
-      });
-      await db.collection('students').doc(currentStudentId).update({payments: s.payments});
-    }
-
-    async function markFull(month, sub, fee) {
-      const inp = document.querySelector(`.pay-input[data-month="${month}"][data-subject="${sub}"]`);
-      if (inp) { inp.value = fee; await savePaymentInputs(); openPayment(currentStudentId); showToast(sub + ' Full Pay'); }
-    }
-
-    document.getElementById('paymentModal').addEventListener('click', e => {
-      if (e.target.id === 'paymentModal') closeModal();
+  async function savePaymentInputs() {
+    if (!currentStudentId) return;
+    const s = data.students.find(x => x.id === currentStudentId); if (!s) return;
+    document.querySelectorAll('.pay-input').forEach(inp => {
+      const month = inp.dataset.month, sub = inp.dataset.subject;
+      let val = parseInt(inp.value) || 0;
+      const fee = data.fees[sub] || 0;
+      if (val > fee) val = fee; if (val < 0) val = 0;
+      if (!s.payments[month]) s.payments[month] = {};
+      s.payments[month][sub] = val;
     });
+    await db.collection('students').doc(currentStudentId).update({ payments: s.payments });
+  }
 
-    // Enter key on login
-    document.getElementById('loginPassword')?.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-  </script>
+  async function markFull(month, sub, fee) {
+    const inp = document.querySelector(`.pay-input[data-month="${month}"][data-subject="${sub}"]`);
+    if (inp) {
+      inp.value = fee;
+      await savePaymentInputs();
+      openPayment(currentStudentId);
+      showToast(sub + ' Full Pay');
+    }
+  }
+
+  document.getElementById('paymentModal').addEventListener('click', e => {
+    if (e.target.id === 'paymentModal') closeModal();
+  });
+</script>
 </body>
 </html>
