@@ -228,7 +228,7 @@
 
       <div class="card">
         <h2>Admin Commission Rate (Subject-wise)</h2>
-        <div class="info-box">Admin gets this % from each subject's payment. Teacher gets the rest.</div>
+        <div class="info-box">Admin gets this % from each subject's payment. Teacher gets the rest. You can set 0%.</div>
         <div id="commissionInputs"></div>
         <button class="btn btn-primary" style="margin-top:.8rem" onclick="saveCommission()">Save Commission</button>
       </div>
@@ -512,18 +512,19 @@
     await saveSettings(); showToast('Fees saved');
   }
 
-  // Commission (Subject-wise)
+  // Commission (Subject-wise) — 0% allowed
   function loadCommissionInputs() {
     document.getElementById('commissionInputs').innerHTML = data.subjects.map(sub => `
       <div class="form-group" style="margin-bottom:.7rem">
         <label>${sub} Commission %</label>
-        <input type="number" id="comm_${sub}" min="0" max="100" step="5" value="${data.commissionRates[sub] ?? 30}" />
+        <input type="number" id="comm_${sub}" min="0" max="100" step="1" value="${data.commissionRates[sub] ?? 30}" />
       </div>`).join('');
   }
   async function saveCommission() {
     if (!isAdmin()) return;
     data.subjects.forEach(sub => {
-      data.commissionRates[sub] = parseInt(document.getElementById('comm_' + sub)?.value) || 30;
+      const val = parseInt(document.getElementById('comm_' + sub)?.value);
+      data.commissionRates[sub] = isNaN(val) ? 30 : Math.max(0, Math.min(100, val));
     });
     await saveSettings();
     showToast('Commission rates saved');
@@ -839,7 +840,6 @@
     const monthKey = document.getElementById('summaryMonth').value;
     const stats = getMonthStats(monthKey);
 
-    // Calculate total commission using subject-wise rates
     let totalAdminComm = 0;
     allowedSubjects().forEach(sub => {
       const s = stats.subjectStats[sub] || {collected:0};
