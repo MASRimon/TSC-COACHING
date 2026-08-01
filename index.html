@@ -218,7 +218,7 @@
       </div>
     </div>
 
-    <!-- SETTINGS (Admin only) -->
+    <!-- SETTINGS -->
     <div id="tab-settings" class="tab-content" style="display:none">
       <div class="card">
         <h2>Monthly Fees</h2>
@@ -227,15 +227,10 @@
       </div>
 
       <div class="card">
-        <h2>Admin Commission Rate</h2>
-        <div class="info-box">Admin gets this % from every payment. Teacher gets the rest.</div>
-        <div class="form-row">
-          <div class="form-group" style="max-width:180px">
-            <label>Commission %</label>
-            <input type="number" id="commissionRate" min="0" max="100" step="5" value="30" />
-          </div>
-        </div>
-        <button class="btn btn-primary" onclick="saveCommission()">Save Commission</button>
+        <h2>Admin Commission Rate (Subject-wise)</h2>
+        <div class="info-box">Admin gets this % from each subject's payment. Teacher gets the rest.</div>
+        <div id="commissionInputs"></div>
+        <button class="btn btn-primary" style="margin-top:.8rem" onclick="saveCommission()">Save Commission</button>
       </div>
 
       <div class="card">
@@ -335,7 +330,7 @@
   let data = {
     fees: {}, subjects: [...DEFAULT_SUBJECTS], colleges: [...DEFAULT_COLLEGES],
     batchesByYear: JSON.parse(JSON.stringify(DEFAULT_BATCHES)),
-    commissionRate: 30, students: [], users: []
+    commissionRates: {}, students: [], users: []
   };
   let currentYear = 2027;
   let currentUser = null;
@@ -410,6 +405,9 @@
   function studentsOfYear() {
     return data.students.filter(s => +s.hscYear === currentYear);
   }
+  function getCommRate(sub) {
+    return data.commissionRates[sub] ?? 30;
+  }
 
   function setYear(y) {
     currentYear = y;
@@ -436,10 +434,13 @@
         data.fees = s.fees || {};
         data.subjects = s.subjects || [...DEFAULT_SUBJECTS];
         data.colleges = s.colleges || data.colleges;
-        data.commissionRate = s.commissionRate ?? 30;
+        data.commissionRates = s.commissionRates || {};
         if (s.batchesByYear) data.batchesByYear = s.batchesByYear;
       }
-      data.subjects.forEach(sub => { if (data.fees[sub] === undefined) data.fees[sub] = 500; });
+      data.subjects.forEach(sub => {
+        if (data.fees[sub] === undefined) data.fees[sub] = 500;
+        if (data.commissionRates[sub] === undefined) data.commissionRates[sub] = 30;
+      });
 
       const snap = await db.collection('students').get();
       data.students = [];
@@ -454,10 +455,9 @@
       document.getElementById('studentLoading').style.display = 'none';
       renderStudents();
       loadFeeInputs();
+      loadCommissionInputs();
       renderSubjectList();
       populateTeacherRoleSelect();
-      const rateEl = document.getElementById('commissionRate');
-      if (rateEl) rateEl.value = data.commissionRate;
     } catch (e) {
       console.error(e);
       showToast('Load error: ' + e.message);
@@ -467,8 +467,11 @@
 
   async function saveSettings() {
     await db.collection('settings').doc('main').set({
-      fees: data.fees, subjects: data.subjects, colleges: data.colleges,
-      batchesByYear: data.batchesByYear, commissionRate: data.commissionRate
+      fees: data.fees,
+      subjects: data.subjects,
+      colleges: data.colleges,
+      batchesByYear: data.batchesByYear,
+      commissionRates: data.commissionRates
     });
   }
 
@@ -480,9 +483,8 @@
       btn.classList.add('active');
       document.getElementById('tab-' + btn.dataset.tab).style.display = 'block';
       if (btn.dataset.tab === 'settings') {
-        loadFeeInputs(); renderCollegeList(); renderBatchList(); renderSubjectList(); renderTeacherList();
-        const rateEl = document.getElementById('commissionRate');
-        if (rateEl) rateEl.value = data.commissionRate;
+        loadFeeInputs(); loadCommissionInputs();
+        renderCollegeList(); renderBatchList(); renderSubjectList(); renderTeacherList();
       }
       if (btn.dataset.tab === 'add') {
         document.getElementById('newHscYear').value = currentYear;
@@ -509,9 +511,22 @@
     });
     await saveSettings(); showToast('Fees saved');
   }
+
+  // Commission (Subject-wise)
+  function loadCommissionInputs() {
+    document.getElementById('commissionInputs').innerHTML = data.subjects.map(sub => `
+      <div class="form-group" style="margin-bottom:.7rem">
+        <label>${sub} Commission %</label>
+        <input type="number" id="comm_${sub}" min="0" max="100" step="5" value="${data.commissionRates[sub] ?? 30}" />
+      </div>`).join('');
+  }
   async function saveCommission() {
-    data.commissionRate = parseInt(document.getElementById('commissionRate').value) || 30;
-    await saveSettings(); showToast('Commission saved: ' + data.commissionRate + '%');
+    if (!isAdmin()) return;
+    data.subjects.forEach(sub => {
+      data.commissionRates[sub] = parseInt(document.getElementById('comm_' + sub)?.value) || 30;
+    });
+    await saveSettings();
+    showToast('Commission rates saved');
   }
 
   // Subjects
@@ -526,18 +541,22 @@
     if (!isAdmin()) return;
     const n = document.getElementById('newSubject').value.trim();
     if (!n || data.subjects.includes(n)) return showToast('Invalid name');
-    data.subjects.push(n); data.fees[n] = 500;
+    data.subjects.push(n);
+    data.fees[n] = 500;
+    data.commissionRates[n] = 30;
     await saveSettings();
     document.getElementById('newSubject').value = '';
-    renderSubjectList(); loadFeeInputs(); populateTeacherRoleSelect();
+    renderSubjectList(); loadFeeInputs(); loadCommissionInputs(); populateTeacherRoleSelect();
     showToast('Subject added');
   }
   async function removeSubject(i) {
     if (!isAdmin() || !confirm('Delete subject?')) return;
     const sub = data.subjects[i];
-    data.subjects.splice(i,1); delete data.fees[sub];
+    data.subjects.splice(i,1);
+    delete data.fees[sub];
+    delete data.commissionRates[sub];
     await saveSettings();
-    renderSubjectList(); loadFeeInputs(); populateTeacherRoleSelect();
+    renderSubjectList(); loadFeeInputs(); loadCommissionInputs(); populateTeacherRoleSelect();
   }
 
   // Colleges
@@ -819,22 +838,27 @@
   function renderSummary() {
     const monthKey = document.getElementById('summaryMonth').value;
     const stats = getMonthStats(monthKey);
-    const rate = (data.commissionRate || 30) / 100;
-    const adminComm = Math.round(stats.collected * rate);
-    const teacherShare = stats.collected - adminComm;
+
+    // Calculate total commission using subject-wise rates
+    let totalAdminComm = 0;
+    allowedSubjects().forEach(sub => {
+      const s = stats.subjectStats[sub] || {collected:0};
+      totalAdminComm += Math.round(s.collected * (getCommRate(sub) / 100));
+    });
+    const totalTeacherShare = stats.collected - totalAdminComm;
 
     if (isAdmin()) {
       document.getElementById('summaryStats').innerHTML = `
         <div class="stat-card expected"><div class="label">Expected</div><div class="value">${stats.expected} ৳</div></div>
         <div class="stat-card collected"><div class="label">Total Collected</div><div class="value">${stats.collected} ৳</div></div>
-        <div class="stat-card"><div class="label">All Teachers Share</div><div class="value" style="color:#059669">${teacherShare} ৳</div></div>
-        <div class="stat-card due"><div class="label">My Commission (${data.commissionRate}%)</div><div class="value">${adminComm} ৳</div></div>`;
+        <div class="stat-card"><div class="label">All Teachers Share</div><div class="value" style="color:#059669">${totalTeacherShare} ৳</div></div>
+        <div class="stat-card due"><div class="label">My Total Commission</div><div class="value">${totalAdminComm} ৳</div></div>`;
     } else {
       document.getElementById('summaryStats').innerHTML = `
         <div class="stat-card expected"><div class="label">Expected</div><div class="value">${stats.expected} ৳</div></div>
         <div class="stat-card collected"><div class="label">Collected</div><div class="value">${stats.collected} ৳</div></div>
-        <div class="stat-card"><div class="label">My Share</div><div class="value" style="color:#059669">${teacherShare} ৳</div></div>
-        <div class="stat-card due"><div class="label">Admin Share (${data.commissionRate}%)</div><div class="value">${adminComm} ৳</div></div>`;
+        <div class="stat-card"><div class="label">My Share</div><div class="value" style="color:#059669">${totalTeacherShare} ৳</div></div>
+        <div class="stat-card due"><div class="label">Admin Share</div><div class="value">${totalAdminComm} ৳</div></div>`;
     }
 
     const teacherLabel = isAdmin() ? 'Teacher Share' : 'My Share';
@@ -846,14 +870,15 @@
 
     document.getElementById('subjectBreakdown').innerHTML = allowedSubjects().map(sub => {
       const s = stats.subjectStats[sub] || {expected:0, collected:0};
-      const comm = Math.round(s.collected * rate);
+      const rate = getCommRate(sub);
+      const comm = Math.round(s.collected * (rate / 100));
       const teacher = s.collected - comm;
       return `<tr>
         <td><strong>${sub}</strong></td>
         <td>${s.expected} ৳</td>
         <td style="color:var(--success)">${s.collected} ৳</td>
         <td style="color:#059669">${teacher} ৳</td>
-        <td style="color:var(--danger)">${comm} ৳</td>
+        <td style="color:var(--danger)">${comm} ৳ (${rate}%)</td>
       </tr>`;
     }).join('');
 
