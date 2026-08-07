@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TSC Coaching - Fee Management</title>
+  <title>Tahsin Sifat's Classroom - Honorarium Management</title>
   <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
@@ -16,7 +16,7 @@
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh}
     header{background:linear-gradient(135deg,#1e40af,#2563eb);color:#fff;padding:1.1rem 1.5rem;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(37,99,235,.25);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem}
-    header h1{font-size:1.3rem;font-weight:700}
+    header h1{font-size:1.25rem;font-weight:700}
     header p{font-size:.8rem;opacity:.9}
     .header-right{display:flex;align-items:center;gap:.8rem;font-size:.9rem}
     .container{max-width:1140px;margin:0 auto;padding:1.3rem}
@@ -55,6 +55,7 @@
     .badge-partial{background:#fef3c7;color:#92400e}
     .badge-college{background:#ede9fe;color:#5b21b6}
     .badge-batch{background:#dbeafe;color:#1e40af}
+    .badge-group{background:#fce7f3;color:#9d174d}
     .badge-role{background:#fef3c7;color:#92400e}
     .modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:200;align-items:center;justify-content:center;padding:1rem}
     .modal-overlay.show{display:flex}
@@ -81,7 +82,7 @@
     .loading,.empty{text-align:center;padding:2.5rem;color:var(--muted)}
     #loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#1e40af,#2563eb)}
     .login-box{background:#fff;padding:2.2rem;border-radius:16px;width:100%;max-width:400px;box-shadow:0 20px 50px rgba(0,0,0,.2)}
-    .login-box h2{text-align:center;margin-bottom:.3rem;font-size:1.4rem}
+    .login-box h2{text-align:center;margin-bottom:.3rem;font-size:1.35rem}
     .login-box p{text-align:center;color:var(--muted);margin-bottom:1.5rem;font-size:.9rem}
     .login-box .form-group{margin-bottom:1rem}
     .login-error{color:var(--danger);font-size:.85rem;margin-top:.5rem;text-align:center;display:none}
@@ -93,9 +94,9 @@
 
 <div id="loginScreen">
   <div class="login-box">
-    <h2>TSC Coaching</h2>
-    <p>Fee Management Login</p>
-    <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="admin@tsc.com" /></div>
+    <h2>Tahsin Sifat's Classroom</h2>
+    <p>Honorarium Management Login</p>
+    <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="admin@example.com" /></div>
     <div class="form-group"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••" /></div>
     <button class="btn btn-primary" style="width:100%;margin-top:.5rem" onclick="doLogin()">Login</button>
     <div class="login-error" id="loginError">Invalid email or password</div>
@@ -105,8 +106,8 @@
 <div id="app">
   <header>
     <div>
-      <h1>TSC Coaching — Fee Management</h1>
-      <p>HSC Batch · Cloud Sync</p>
+      <h1>Tahsin Sifat's Classroom</h1>
+      <p>Honorarium Management · HSC Batch</p>
     </div>
     <div class="header-right">
       <span id="userInfo"></span>
@@ -138,14 +139,19 @@
       <div class="card">
         <h2>Students — <span id="yearLabel1">2027</span> Batch</h2>
         <div class="search-box">
-          <input type="text" id="searchInput" placeholder="Search ID / Name / College / Time Batch..." />
+          <input type="text" id="searchInput" placeholder="Search ID / Name / College / Group / Contact..." />
           <button class="btn btn-primary" onclick="searchStudent()">Search</button>
           <button class="btn btn-outline" onclick="clearSearch()">Clear</button>
         </div>
         <div id="studentLoading" class="loading">Loading...</div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>ID</th><th>Name</th><th>College</th><th>Time Batch</th><th>Subjects</th><th>This Month</th><th>Actions</th></tr></thead>
+            <thead>
+              <tr>
+                <th>ID</th><th>Name</th><th>Group</th><th>College</th><th>Contact</th>
+                <th>Time Batch</th><th>Subjects</th><th>This Month</th><th>Actions</th>
+              </tr>
+            </thead>
             <tbody id="studentTableBody"></tbody>
           </table>
         </div>
@@ -165,7 +171,7 @@
         <div class="stat-grid" id="monthViewStats"></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>ID</th><th>Name</th><th>College</th><th>Time Batch</th><th>Status</th><th>Due</th><th></th></tr></thead>
+            <thead><tr><th>ID</th><th>Name</th><th>Group</th><th>College</th><th>Time Batch</th><th>Status</th><th>Due</th><th></th></tr></thead>
             <tbody id="monthViewBody"></tbody>
           </table>
         </div>
@@ -191,7 +197,7 @@
         <h3 style="font-size:1rem;margin:1.2rem 0 .6rem;font-weight:700">Students with Due</h3>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>ID</th><th>Name</th><th>College</th><th>Time Batch</th><th>Due</th><th></th></tr></thead>
+            <thead><tr><th>ID</th><th>Name</th><th>Group</th><th>College</th><th>Contact</th><th>Due</th><th></th></tr></thead>
             <tbody id="dueStudentsBody"></tbody>
           </table>
         </div>
@@ -207,13 +213,29 @@
           <div class="form-group"><label>Student ID *</label><input type="text" id="newId" placeholder="e.g. A001" /></div>
           <div class="form-group"><label>Name *</label><input type="text" id="newName" placeholder="Full name" /></div>
         </div>
-        <div class="form-group" style="margin-bottom:1rem">
-          <label>HSC Year *</label>
-          <select id="newHscYear"><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option></select>
+        <div class="form-row">
+          <div class="form-group">
+            <label>HSC Year *</label>
+            <select id="newHscYear"><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option></select>
+          </div>
+          <div class="form-group"><label>Contact Number</label><input type="text" id="newContact" placeholder="01XXXXXXXXX" /></div>
         </div>
-        <div class="form-group" style="margin-bottom:1rem"><label>College *</label><div class="chip-group" id="collegeChips"></div></div>
-        <div class="form-group" style="margin-bottom:1rem"><label>Time Batch</label><div class="chip-group" id="batchChips"></div></div>
-        <div class="form-group" style="margin-bottom:1.2rem"><label>Subjects</label><div class="chip-group" id="subjectChips"></div></div>
+        <div class="form-group" style="margin-bottom:1rem">
+          <label>Group *</label>
+          <div class="chip-group" id="groupChips"></div>
+        </div>
+        <div class="form-group" style="margin-bottom:1rem">
+          <label>College (Optional)</label>
+          <div class="chip-group" id="collegeChips"></div>
+        </div>
+        <div class="form-group" style="margin-bottom:1rem">
+          <label>Time Batch</label>
+          <div class="chip-group" id="batchChips"></div>
+        </div>
+        <div class="form-group" style="margin-bottom:1.2rem">
+          <label>Subjects *</label>
+          <div class="chip-group" id="subjectChips"></div>
+        </div>
         <button class="btn btn-primary" onclick="addStudent()">Add Student</button>
       </div>
     </div>
@@ -311,6 +333,7 @@
   const DEFAULT_COLLEGES = ['Notre Dame College','Holy Cross College','Dhaka College','Ideal College','Viqarunnisa Noon','Other'];
   const DEFAULT_BATCHES = {2027:['11AM','2PM','3PM'],2028:['11AM','2PM'],2029:['11AM','2PM'],2030:['11AM','2PM']};
   const DEFAULT_SUBJECTS = ['English','ICT'];
+  const GROUPS = ['Science','Humanities','Business Studies'];
 
   function generateMonths() {
     const months = [];
@@ -334,7 +357,7 @@
   };
   let currentYear = 2027;
   let currentUser = null;
-  let selectedCollege = null, selectedBatch = null, selectedSubjects = [], currentStudentId = null;
+  let selectedCollege = null, selectedBatch = null, selectedSubjects = [], selectedGroup = null, currentStudentId = null;
 
   // ===== AUTH =====
   auth.onAuthStateChanged(async user => {
@@ -488,7 +511,7 @@
       }
       if (btn.dataset.tab === 'add') {
         document.getElementById('newHscYear').value = currentYear;
-        renderCollegeChips(); renderBatchChips(); renderSubjectChips();
+        renderGroupChips(); renderCollegeChips(); renderBatchChips(); renderSubjectChips();
         document.getElementById('newHscYear').onchange = () => renderBatchChips();
       }
       if (btn.dataset.tab === 'summary') { populateMonthSelect('summaryMonth'); renderSummary(); }
@@ -512,7 +535,7 @@
     await saveSettings(); showToast('Fees saved');
   }
 
-  // Commission (Subject-wise) — 0% allowed
+  // Commission (0% allowed)
   function loadCommissionInputs() {
     document.getElementById('commissionInputs').innerHTML = data.subjects.map(sub => `
       <div class="form-group" style="margin-bottom:.7rem">
@@ -641,6 +664,15 @@
   }
 
   // Chips
+  function renderGroupChips() {
+    selectedGroup = null;
+    document.getElementById('groupChips').innerHTML = GROUPS.map(g =>
+      `<span class="chip" onclick="selectGroup(this,'${g}')">${g}</span>`).join('');
+  }
+  function selectGroup(el, name) {
+    document.querySelectorAll('#groupChips .chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected'); selectedGroup = name;
+  }
   function renderCollegeChips() {
     selectedCollege = null;
     document.getElementById('collegeChips').innerHTML = data.colleges.map(c =>
@@ -676,13 +708,14 @@
     }
   }
 
-  // ADD STUDENT (Teachers + Admin)
+  // ADD STUDENT
   async function addStudent() {
     const id = document.getElementById('newId').value.trim();
     const name = document.getElementById('newName').value.trim();
     const hscYear = +document.getElementById('newHscYear').value;
+    const contact = document.getElementById('newContact').value.trim();
     if (!id || !name) return showToast('ID and Name required');
-    if (!selectedCollege) return showToast('Select College');
+    if (!selectedGroup) return showToast('Select Group');
     if (selectedSubjects.length === 0) return showToast('Select subject');
     if (data.students.find(s => s.id.toLowerCase() === id.toLowerCase())) return showToast('ID exists');
 
@@ -692,12 +725,21 @@
       selectedSubjects.forEach(sub => payments[m.key][sub] = 0);
     });
 
-    const student = { name, hscYear, college: selectedCollege, batch: selectedBatch || '—', subjects: [...selectedSubjects], payments };
+    const student = {
+      name, hscYear,
+      group: selectedGroup,
+      college: selectedCollege || '—',
+      contact: contact || '—',
+      batch: selectedBatch || '—',
+      subjects: [...selectedSubjects],
+      payments
+    };
     await db.collection('students').doc(id).set(student);
     data.students.push({ id, ...student });
     showToast(name + ' added');
     document.getElementById('newId').value = '';
     document.getElementById('newName').value = '';
+    document.getElementById('newContact').value = '';
     setYear(hscYear);
     document.querySelector('[data-tab="students"]').click();
   }
@@ -722,8 +764,11 @@
     }
     if (filter) {
       const q = filter.toLowerCase();
-      list = list.filter(s => s.id.toLowerCase().includes(q) || s.name.toLowerCase().includes(q) ||
-        (s.college||'').toLowerCase().includes(q) || (s.batch||'').toLowerCase().includes(q));
+      list = list.filter(s =>
+        s.id.toLowerCase().includes(q) || s.name.toLowerCase().includes(q) ||
+        (s.college||'').toLowerCase().includes(q) || (s.batch||'').toLowerCase().includes(q) ||
+        (s.group||'').toLowerCase().includes(q) || (s.contact||'').toLowerCase().includes(q)
+      );
     }
     const tbody = document.getElementById('studentTableBody');
     const empty = document.getElementById('emptyStudents');
@@ -734,10 +779,14 @@
       const badge = due > 0 ? `<span class="badge badge-due">${due} ৳ Due</span>` : `<span class="badge badge-paid">Paid</span>`;
       const visSubjects = (s.subjects || []).filter(sub => allowedSubjects().includes(sub));
       return `<tr>
-        <td><strong>${s.id}</strong></td><td>${s.name}</td>
-        <td><span class="badge badge-college">${s.college||'—'}</span></td>
-        <td><span class="badge badge-batch">${s.batch||'—'}</span></td>
-        <td>${visSubjects.join(', ')}</td><td>${badge}</td>
+        <td><strong>${s.id}</strong></td>
+        <td>${s.name}</td>
+        <td><span class="badge badge-group">${s.group || '—'}</span></td>
+        <td><span class="badge badge-college">${s.college || '—'}</span></td>
+        <td>${s.contact || '—'}</td>
+        <td><span class="badge badge-batch">${s.batch || '—'}</span></td>
+        <td>${visSubjects.join(', ')}</td>
+        <td>${badge}</td>
         <td>
           <button class="btn btn-primary btn-sm" onclick="openPayment('${s.id}')">Pay</button>
           ${isAdmin() ? `<button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.id}')">Del</button>` : ''}
@@ -787,7 +836,7 @@
         }
         dueDetail[sub] = {paid, due, fee}; studentDue += due;
       });
-      const row = {id:s.id, name:s.name, college:s.college, batch:s.batch, due:studentDue, detail:dueDetail};
+      const row = {id:s.id, name:s.name, group:s.group, college:s.college, contact:s.contact, batch:s.batch, due:studentDue, detail:dueDetail};
       allStudents.push(row);
       if (studentDue > 0) dueStudents.push(row);
     });
@@ -827,8 +876,10 @@
     tbody.innerHTML = list.map(s => {
       const subStatus = allowedSubjects().map(sub => statusBadge(s.detail[sub])).join(' ');
       return `<tr>
-        <td><strong>${s.id}</strong></td><td>${s.name}</td><td>${s.college||'—'}</td>
-        <td><span class="badge badge-batch">${s.batch||'—'}</span></td>
+        <td><strong>${s.id}</strong></td><td>${s.name}</td>
+        <td><span class="badge badge-group">${s.group || '—'}</span></td>
+        <td>${s.college || '—'}</td>
+        <td><span class="badge badge-batch">${s.batch || '—'}</span></td>
         <td>${subStatus}</td>
         <td>${s.due > 0 ? `<span class="badge badge-due">${s.due} ৳</span>` : `<span class="badge badge-paid">0</span>`}</td>
         <td><button class="btn btn-primary btn-sm" onclick="openPayment('${s.id}')">Pay</button></td>
@@ -890,7 +941,10 @@
       noDue.style.display = 'none';
       tbody.innerHTML = stats.dueStudents.map(s => `
         <tr>
-          <td><strong>${s.id}</strong></td><td>${s.name}</td><td>${s.college||'—'}</td><td>${s.batch||'—'}</td>
+          <td><strong>${s.id}</strong></td><td>${s.name}</td>
+          <td><span class="badge badge-group">${s.group || '—'}</span></td>
+          <td>${s.college || '—'}</td>
+          <td>${s.contact || '—'}</td>
           <td><span class="badge badge-due">${s.due} ৳</span></td>
           <td><button class="btn btn-primary btn-sm" onclick="openPayment('${s.id}')">Pay</button></td>
         </tr>`).join('');
@@ -900,7 +954,8 @@
   function openPayment(id) {
     currentStudentId = id;
     const s = data.students.find(x => x.id === id); if (!s) return;
-    document.getElementById('modalTitle').textContent = `${s.name} (${s.id}) · HSC ${s.hscYear} · ${s.college||''} · ${s.batch||''}`;
+    document.getElementById('modalTitle').textContent =
+      `${s.name} (${s.id}) · ${s.group || ''} · HSC ${s.hscYear} · ${s.college || ''} · ${s.contact || ''}`;
 
     const visSubs = (s.subjects || []).filter(sub => allowedSubjects().includes(sub));
     let totalPaid = 0, totalDue = 0;
