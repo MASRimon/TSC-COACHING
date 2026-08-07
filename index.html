@@ -80,6 +80,8 @@
     .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#0f172a;color:#fff;padding:.7rem 1.2rem;border-radius:10px;z-index:300;opacity:0;transition:.3s;font-weight:500}
     .toast.show{opacity:1}
     .loading,.empty{text-align:center;padding:2.5rem;color:var(--muted)}
+    .sub-batch-section{border:1px solid var(--border);border-radius:10px;padding:.9rem;margin-bottom:.8rem;background:#f8fafc}
+    .sub-batch-section h4{font-size:.95rem;margin-bottom:.5rem;color:var(--primary)}
     #loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#1e40af,#2563eb)}
     .login-box{background:#fff;padding:2.2rem;border-radius:16px;width:100%;max-width:400px;box-shadow:0 20px 50px rgba(0,0,0,.2)}
     .login-box h2{text-align:center;margin-bottom:.3rem;font-size:1.35rem}
@@ -149,7 +151,7 @@
             <thead>
               <tr>
                 <th>ID</th><th>Name</th><th>Group</th><th>College</th><th>Contact</th>
-                <th>Time Batch</th><th>Subjects</th><th>This Month</th><th>Actions</th>
+                <th>Time Batches</th><th>Subjects</th><th>This Month</th><th>Actions</th>
               </tr>
             </thead>
             <tbody id="studentTableBody"></tbody>
@@ -163,15 +165,15 @@
     <div id="tab-monthview" class="tab-content" style="display:none">
       <div class="card">
         <h2>Month View — <span id="yearLabel2">2027</span> Batch</h2>
-        <div class="info-box">Select month & time-batch.</div>
+        <div class="info-box">Select month. Filter by subject time-batch if needed.</div>
         <div class="form-row">
           <div class="form-group" style="max-width:250px"><label>Month</label><select id="monthViewSelect" onchange="renderMonthView()"></select></div>
-          <div class="form-group" style="max-width:200px"><label>Time Batch</label><select id="batchViewSelect" onchange="renderMonthView()"><option value="all">All</option></select></div>
+          <div class="form-group" style="max-width:220px"><label>Time Batch Filter</label><select id="batchViewSelect" onchange="renderMonthView()"><option value="all">All</option></select></div>
         </div>
         <div class="stat-grid" id="monthViewStats"></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>ID</th><th>Name</th><th>Group</th><th>College</th><th>Time Batch</th><th>Status</th><th>Due</th><th></th></tr></thead>
+            <thead><tr><th>ID</th><th>Name</th><th>Group</th><th>College</th><th>Time Batches</th><th>Status</th><th>Due</th><th></th></tr></thead>
             <tbody id="monthViewBody"></tbody>
           </table>
         </div>
@@ -216,7 +218,7 @@
         <div class="form-row">
           <div class="form-group">
             <label>HSC Year *</label>
-            <select id="newHscYear"><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option></select>
+            <select id="newHscYear" onchange="onAddYearChange()"><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option></select>
           </div>
           <div class="form-group"><label>Contact Number</label><input type="text" id="newContact" placeholder="01XXXXXXXXX" /></div>
         </div>
@@ -229,13 +231,10 @@
           <div class="chip-group" id="collegeChips"></div>
         </div>
         <div class="form-group" style="margin-bottom:1rem">
-          <label>Time Batch</label>
-          <div class="chip-group" id="batchChips"></div>
-        </div>
-        <div class="form-group" style="margin-bottom:1.2rem">
           <label>Subjects *</label>
           <div class="chip-group" id="subjectChips"></div>
         </div>
+        <div id="subjectBatchArea" style="margin-bottom:1.2rem"></div>
         <button class="btn btn-primary" onclick="addStudent()">Add Student</button>
       </div>
     </div>
@@ -274,13 +273,9 @@
       </div>
 
       <div class="card">
-        <h2>Time Batch — <span id="yearLabel4">2027</span></h2>
-        <div class="info-box">Each HSC year has its own time batches.</div>
-        <div id="batchList"></div>
-        <div class="form-row" style="margin-top:.7rem">
-          <div class="form-group"><input type="text" id="newBatch" placeholder="e.g. 11AM" /></div>
-          <button class="btn btn-primary" onclick="addBatch()">Add</button>
-        </div>
+        <h2>Time Batches — <span id="yearLabel4">2027</span> (Subject-wise)</h2>
+        <div class="info-box">Each subject has its own time batches for this HSC year.</div>
+        <div id="batchListBySubject"></div>
       </div>
 
       <div class="card">
@@ -331,9 +326,15 @@
   const db = firebase.firestore();
 
   const DEFAULT_COLLEGES = ['Notre Dame College','Holy Cross College','Dhaka College','Ideal College','Viqarunnisa Noon','Other'];
-  const DEFAULT_BATCHES = {2027:['11AM','2PM','3PM'],2028:['11AM','2PM'],2029:['11AM','2PM'],2030:['11AM','2PM']};
   const DEFAULT_SUBJECTS = ['English','ICT'];
   const GROUPS = ['Science','Humanities','Business Studies'];
+  // batchesByYearSubject: { 2027: { English: ['11AM','2PM'], ICT: ['3PM'] }, ... }
+  const DEFAULT_BATCHES = {
+    2027: { English: ['11AM','2PM'], ICT: ['3PM'] },
+    2028: { English: ['11AM'], ICT: ['2PM'] },
+    2029: { English: ['11AM'], ICT: ['2PM'] },
+    2030: { English: ['11AM'], ICT: ['2PM'] }
+  };
 
   function generateMonths() {
     const months = [];
@@ -352,12 +353,14 @@
 
   let data = {
     fees: {}, subjects: [...DEFAULT_SUBJECTS], colleges: [...DEFAULT_COLLEGES],
-    batchesByYear: JSON.parse(JSON.stringify(DEFAULT_BATCHES)),
+    batchesByYearSubject: JSON.parse(JSON.stringify(DEFAULT_BATCHES)),
     commissionRates: {}, students: [], users: []
   };
   let currentYear = 2027;
   let currentUser = null;
-  let selectedCollege = null, selectedBatch = null, selectedSubjects = [], selectedGroup = null, currentStudentId = null;
+  let selectedCollege = null, selectedSubjects = [], selectedGroup = null;
+  let selectedSubjectBatches = {}; // { English: '11AM', ICT: '3PM' }
+  let currentStudentId = null;
 
   // ===== AUTH =====
   auth.onAuthStateChanged(async user => {
@@ -412,7 +415,6 @@
     }
   }
   function doLogout() { auth.signOut(); }
-
   document.getElementById('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
   // ===== HELPERS =====
@@ -421,10 +423,32 @@
     t.textContent = msg; t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 2500);
   }
-  function getBatchesForYear(y) {
-    if (!data.batchesByYear[y]) data.batchesByYear[y] = [];
-    return data.batchesByYear[y];
+
+  function ensureYearSubject(y, sub) {
+    if (!data.batchesByYearSubject[y]) data.batchesByYearSubject[y] = {};
+    if (!data.batchesByYearSubject[y][sub]) data.batchesByYearSubject[y][sub] = [];
+    return data.batchesByYearSubject[y][sub];
   }
+
+  function getBatches(y, sub) {
+    return ensureYearSubject(y, sub);
+  }
+
+  function allBatchesForYear(y) {
+    const set = new Set();
+    const yearData = data.batchesByYearSubject[y] || {};
+    Object.values(yearData).forEach(arr => arr.forEach(b => set.add(b)));
+    return [...set];
+  }
+
+  function formatSubjectBatches(s) {
+    if (s.subjectBatches && typeof s.subjectBatches === 'object') {
+      return Object.entries(s.subjectBatches).map(([sub, b]) => `${sub}: ${b}`).join(', ') || '—';
+    }
+    // legacy single batch
+    return s.batch || '—';
+  }
+
   function studentsOfYear() {
     return data.students.filter(s => +s.hscYear === currentYear);
   }
@@ -441,10 +465,10 @@
     renderStudents();
     if (document.getElementById('tab-monthview').style.display !== 'none') { populateBatchSelect(); renderMonthView(); }
     if (document.getElementById('tab-summary').style.display !== 'none') renderSummary();
-    if (document.getElementById('tab-settings').style.display !== 'none') renderBatchList();
+    if (document.getElementById('tab-settings').style.display !== 'none') renderBatchListBySubject();
     if (document.getElementById('tab-add').style.display !== 'none') {
       document.getElementById('newHscYear').value = y;
-      renderBatchChips();
+      renderSubjectBatchArea();
     }
   }
 
@@ -458,11 +482,27 @@
         data.subjects = s.subjects || [...DEFAULT_SUBJECTS];
         data.colleges = s.colleges || data.colleges;
         data.commissionRates = s.commissionRates || {};
-        if (s.batchesByYear) data.batchesByYear = s.batchesByYear;
+        // migrate old batchesByYear if needed
+        if (s.batchesByYearSubject) {
+          data.batchesByYearSubject = s.batchesByYearSubject;
+        } else if (s.batchesByYear) {
+          // convert old format
+          data.batchesByYearSubject = {};
+          Object.keys(s.batchesByYear).forEach(y => {
+            data.batchesByYearSubject[y] = {};
+            data.subjects.forEach(sub => {
+              data.batchesByYearSubject[y][sub] = [...(s.batchesByYear[y] || [])];
+            });
+          });
+        }
       }
       data.subjects.forEach(sub => {
         if (data.fees[sub] === undefined) data.fees[sub] = 500;
         if (data.commissionRates[sub] === undefined) data.commissionRates[sub] = 30;
+      });
+      // ensure structure for all years/subjects
+      [2027,2028,2029,2030].forEach(y => {
+        data.subjects.forEach(sub => ensureYearSubject(y, sub));
       });
 
       const snap = await db.collection('students').get();
@@ -493,7 +533,7 @@
       fees: data.fees,
       subjects: data.subjects,
       colleges: data.colleges,
-      batchesByYear: data.batchesByYear,
+      batchesByYearSubject: data.batchesByYearSubject,
       commissionRates: data.commissionRates
     });
   }
@@ -507,18 +547,24 @@
       document.getElementById('tab-' + btn.dataset.tab).style.display = 'block';
       if (btn.dataset.tab === 'settings') {
         loadFeeInputs(); loadCommissionInputs();
-        renderCollegeList(); renderBatchList(); renderSubjectList(); renderTeacherList();
+        renderCollegeList(); renderBatchListBySubject(); renderSubjectList(); renderTeacherList();
       }
       if (btn.dataset.tab === 'add') {
         document.getElementById('newHscYear').value = currentYear;
-        renderGroupChips(); renderCollegeChips(); renderBatchChips(); renderSubjectChips();
-        document.getElementById('newHscYear').onchange = () => renderBatchChips();
+        renderGroupChips(); renderCollegeChips(); renderSubjectChips();
+        selectedSubjectBatches = {};
+        renderSubjectBatchArea();
       }
       if (btn.dataset.tab === 'summary') { populateMonthSelect('summaryMonth'); renderSummary(); }
       if (btn.dataset.tab === 'monthview') { populateMonthSelect('monthViewSelect'); populateBatchSelect(); renderMonthView(); }
       if (btn.dataset.tab === 'students') renderStudents();
     });
   });
+
+  function onAddYearChange() {
+    selectedSubjectBatches = {};
+    renderSubjectBatchArea();
+  }
 
   // Fees
   function loadFeeInputs() {
@@ -535,7 +581,7 @@
     await saveSettings(); showToast('Fees saved');
   }
 
-  // Commission (0% allowed)
+  // Commission
   function loadCommissionInputs() {
     document.getElementById('commissionInputs').innerHTML = data.subjects.map(sub => `
       <div class="form-group" style="margin-bottom:.7rem">
@@ -568,9 +614,10 @@
     data.subjects.push(n);
     data.fees[n] = 500;
     data.commissionRates[n] = 30;
+    [2027,2028,2029,2030].forEach(y => ensureYearSubject(y, n));
     await saveSettings();
     document.getElementById('newSubject').value = '';
-    renderSubjectList(); loadFeeInputs(); loadCommissionInputs(); populateTeacherRoleSelect();
+    renderSubjectList(); loadFeeInputs(); loadCommissionInputs(); populateTeacherRoleSelect(); renderBatchListBySubject();
     showToast('Subject added');
   }
   async function removeSubject(i) {
@@ -579,8 +626,11 @@
     data.subjects.splice(i,1);
     delete data.fees[sub];
     delete data.commissionRates[sub];
+    Object.keys(data.batchesByYearSubject).forEach(y => {
+      if (data.batchesByYearSubject[y]) delete data.batchesByYearSubject[y][sub];
+    });
     await saveSettings();
-    renderSubjectList(); loadFeeInputs(); loadCommissionInputs(); populateTeacherRoleSelect();
+    renderSubjectList(); loadFeeInputs(); loadCommissionInputs(); populateTeacherRoleSelect(); renderBatchListBySubject();
   }
 
   // Colleges
@@ -601,25 +651,45 @@
     data.colleges.splice(i,1); await saveSettings(); renderCollegeList();
   }
 
-  // Batches
-  function renderBatchList() {
-    const list = getBatchesForYear(currentYear);
-    document.getElementById('batchList').innerHTML = list.map((b,i) =>
-      `<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid #f1f5f9">
-        <span>${b}</span><button class="btn btn-danger btn-sm" onclick="removeBatch(${i})">Del</button></div>`).join('')
-      || '<p style="color:var(--muted);padding:.5rem 0">No time batches yet</p>';
+  // ===== SUBJECT-WISE BATCHES (Settings) =====
+  function renderBatchListBySubject() {
+    const box = document.getElementById('batchListBySubject');
+    if (!box) return;
+    box.innerHTML = data.subjects.map(sub => {
+      const list = getBatches(currentYear, sub);
+      return `<div class="sub-batch-section">
+        <h4>${sub}</h4>
+        ${list.map((b,i) => `
+          <div style="display:flex;justify-content:space-between;padding:.35rem 0;border-bottom:1px solid #e2e8f0">
+            <span>${b}</span>
+            <button class="btn btn-danger btn-sm" onclick="removeBatch('${sub}',${i})">Del</button>
+          </div>`).join('') || '<p style="color:var(--muted);font-size:.85rem">No batches yet</p>'}
+        <div class="form-row" style="margin-top:.6rem">
+          <div class="form-group"><input type="text" id="newBatch_${sub}" placeholder="e.g. 11AM" /></div>
+          <button class="btn btn-primary btn-sm" onclick="addBatch('${sub}')">Add</button>
+        </div>
+      </div>`;
+    }).join('');
   }
-  async function addBatch() {
+
+  async function addBatch(sub) {
     if (!isAdmin()) return;
-    const n = document.getElementById('newBatch').value.trim();
-    const list = getBatchesForYear(currentYear);
-    if (!n || list.includes(n)) return showToast('Invalid name');
-    list.push(n); await saveSettings();
-    document.getElementById('newBatch').value = ''; renderBatchList(); showToast('Added');
+    const input = document.getElementById('newBatch_' + sub);
+    const n = (input?.value || '').trim();
+    const list = getBatches(currentYear, sub);
+    if (!n || list.includes(n)) return showToast('Invalid or duplicate name');
+    list.push(n);
+    await saveSettings();
+    if (input) input.value = '';
+    renderBatchListBySubject();
+    showToast(sub + ' batch added');
   }
-  async function removeBatch(i) {
-    if (!isAdmin() || !confirm('Delete?')) return;
-    getBatchesForYear(currentYear).splice(i,1); await saveSettings(); renderBatchList();
+
+  async function removeBatch(sub, i) {
+    if (!isAdmin() || !confirm('Delete this batch?')) return;
+    getBatches(currentYear, sub).splice(i, 1);
+    await saveSettings();
+    renderBatchListBySubject();
   }
 
   // Teachers
@@ -682,22 +752,12 @@
     document.querySelectorAll('#collegeChips .chip').forEach(c => c.classList.remove('selected'));
     el.classList.add('selected'); selectedCollege = name;
   }
-  function renderBatchChips() {
-    selectedBatch = null;
-    const y = +document.getElementById('newHscYear').value || currentYear;
-    const list = getBatchesForYear(y);
-    document.getElementById('batchChips').innerHTML = list.length
-      ? list.map(b => `<span class="chip" onclick="selectBatch(this,'${b.replace(/'/g,"\\'")}')">${b}</span>`).join('')
-      : '<span style="color:var(--muted);font-size:.85rem">No batches. Add in Settings.</span>';
-  }
-  function selectBatch(el, name) {
-    document.querySelectorAll('#batchChips .chip').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected'); selectedBatch = name;
-  }
   function renderSubjectChips() {
     selectedSubjects = [];
+    selectedSubjectBatches = {};
     document.getElementById('subjectChips').innerHTML = allowedSubjects().map(s =>
       `<span class="chip" onclick="toggleSubject(this,'${s}')">${s}</span>`).join('');
+    renderSubjectBatchArea();
   }
   function toggleSubject(el, name) {
     el.classList.toggle('selected');
@@ -705,7 +765,38 @@
       if (!selectedSubjects.includes(name)) selectedSubjects.push(name);
     } else {
       selectedSubjects = selectedSubjects.filter(x => x !== name);
+      delete selectedSubjectBatches[name];
     }
+    renderSubjectBatchArea();
+  }
+
+  // Subject-wise batch selection in Add Student
+  function renderSubjectBatchArea() {
+    const area = document.getElementById('subjectBatchArea');
+    if (!area) return;
+    const y = +document.getElementById('newHscYear').value || currentYear;
+    if (selectedSubjects.length === 0) {
+      area.innerHTML = '<p style="color:var(--muted);font-size:.9rem">Select subjects first to choose time batches.</p>';
+      return;
+    }
+    area.innerHTML = selectedSubjects.map(sub => {
+      const list = getBatches(y, sub);
+      const current = selectedSubjectBatches[sub] || '';
+      return `<div class="form-group" style="margin-bottom:.9rem">
+        <label>${sub} Time Batch</label>
+        <div class="chip-group" id="batchChips_${sub}">
+          ${list.length
+            ? list.map(b => `<span class="chip ${current===b?'selected':''}" onclick="selectSubjectBatch('${sub}','${b.replace(/'/g,"\\'")}', this)">${b}</span>`).join('')
+            : '<span style="color:var(--muted);font-size:.85rem">No batches for this subject. Add in Settings.</span>'}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function selectSubjectBatch(sub, batch, el) {
+    document.querySelectorAll(`#batchChips_${sub} .chip`).forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedSubjectBatches[sub] = batch;
   }
 
   // ADD STUDENT
@@ -717,6 +808,13 @@
     if (!id || !name) return showToast('ID and Name required');
     if (!selectedGroup) return showToast('Select Group');
     if (selectedSubjects.length === 0) return showToast('Select subject');
+    // check each subject has a batch if batches exist
+    for (const sub of selectedSubjects) {
+      const list = getBatches(hscYear, sub);
+      if (list.length > 0 && !selectedSubjectBatches[sub]) {
+        return showToast('Select time batch for ' + sub);
+      }
+    }
     if (data.students.find(s => s.id.toLowerCase() === id.toLowerCase())) return showToast('ID exists');
 
     const payments = {};
@@ -730,8 +828,8 @@
       group: selectedGroup,
       college: selectedCollege || '—',
       contact: contact || '—',
-      batch: selectedBatch || '—',
       subjects: [...selectedSubjects],
+      subjectBatches: { ...selectedSubjectBatches },
       payments
     };
     await db.collection('students').doc(id).set(student);
@@ -766,8 +864,8 @@
       const q = filter.toLowerCase();
       list = list.filter(s =>
         s.id.toLowerCase().includes(q) || s.name.toLowerCase().includes(q) ||
-        (s.college||'').toLowerCase().includes(q) || (s.batch||'').toLowerCase().includes(q) ||
-        (s.group||'').toLowerCase().includes(q) || (s.contact||'').toLowerCase().includes(q)
+        (s.college||'').toLowerCase().includes(q) || (s.group||'').toLowerCase().includes(q) ||
+        (s.contact||'').toLowerCase().includes(q) || formatSubjectBatches(s).toLowerCase().includes(q)
       );
     }
     const tbody = document.getElementById('studentTableBody');
@@ -784,7 +882,7 @@
         <td><span class="badge badge-group">${s.group || '—'}</span></td>
         <td><span class="badge badge-college">${s.college || '—'}</span></td>
         <td>${s.contact || '—'}</td>
-        <td><span class="badge badge-batch">${s.batch || '—'}</span></td>
+        <td><span class="badge badge-batch">${formatSubjectBatches(s)}</span></td>
         <td>${visSubjects.join(', ')}</td>
         <td>${badge}</td>
         <td>
@@ -810,7 +908,7 @@
   }
   function populateBatchSelect() {
     const sel = document.getElementById('batchViewSelect'); if (!sel) return;
-    const list = getBatchesForYear(currentYear);
+    const list = allBatchesForYear(currentYear);
     sel.innerHTML = `<option value="all">All</option>` + list.map(b => `<option value="${b}">${b}</option>`).join('');
   }
 
@@ -836,7 +934,11 @@
         }
         dueDetail[sub] = {paid, due, fee}; studentDue += due;
       });
-      const row = {id:s.id, name:s.name, group:s.group, college:s.college, contact:s.contact, batch:s.batch, due:studentDue, detail:dueDetail};
+      const row = {
+        id:s.id, name:s.name, group:s.group, college:s.college, contact:s.contact,
+        subjectBatches: s.subjectBatches, batch: s.batch,
+        due:studentDue, detail:dueDetail
+      };
       allStudents.push(row);
       if (studentDue > 0) dueStudents.push(row);
     });
@@ -850,12 +952,19 @@
     return `<span class="badge badge-paid">Paid</span>`;
   }
 
+  function studentHasBatch(s, batchFilter) {
+    if (!batchFilter || batchFilter === 'all') return true;
+    if (s.subjectBatches) {
+      return Object.values(s.subjectBatches).includes(batchFilter);
+    }
+    return (s.batch || '') === batchFilter;
+  }
+
   function renderMonthView() {
     const monthKey = document.getElementById('monthViewSelect').value;
     const batchFilter = document.getElementById('batchViewSelect').value;
     const stats = getMonthStats(monthKey);
-    let list = stats.allStudents;
-    if (batchFilter && batchFilter !== 'all') list = list.filter(s => (s.batch || '') === batchFilter);
+    let list = stats.allStudents.filter(s => studentHasBatch(s, batchFilter));
 
     let expected = 0, collected = 0, dueTotal = 0;
     list.forEach(s => {
@@ -879,7 +988,7 @@
         <td><strong>${s.id}</strong></td><td>${s.name}</td>
         <td><span class="badge badge-group">${s.group || '—'}</span></td>
         <td>${s.college || '—'}</td>
-        <td><span class="badge badge-batch">${s.batch || '—'}</span></td>
+        <td><span class="badge badge-batch">${formatSubjectBatches(s)}</span></td>
         <td>${subStatus}</td>
         <td>${s.due > 0 ? `<span class="badge badge-due">${s.due} ৳</span>` : `<span class="badge badge-paid">0</span>`}</td>
         <td><button class="btn btn-primary btn-sm" onclick="openPayment('${s.id}')">Pay</button></td>
@@ -955,7 +1064,7 @@
     currentStudentId = id;
     const s = data.students.find(x => x.id === id); if (!s) return;
     document.getElementById('modalTitle').textContent =
-      `${s.name} (${s.id}) · ${s.group || ''} · HSC ${s.hscYear} · ${s.college || ''} · ${s.contact || ''}`;
+      `${s.name} (${s.id}) · ${s.group || ''} · HSC ${s.hscYear} · ${formatSubjectBatches(s)} · ${s.contact || ''}`;
 
     const visSubs = (s.subjects || []).filter(sub => allowedSubjects().includes(sub));
     let totalPaid = 0, totalDue = 0;
