@@ -151,7 +151,7 @@
             <thead>
               <tr>
                 <th>ID</th><th>Name</th><th>Group</th><th>College</th><th>Contact</th>
-                <th>Time Batches</th><th>Subjects</th><th>This Month</th><th>Actions</th>
+                <th>Batch Time</th><th>Subject</th><th>This Month</th><th>Actions</th>
               </tr>
             </thead>
             <tbody id="studentTableBody"></tbody>
@@ -173,7 +173,7 @@
         <div class="stat-grid" id="monthViewStats"></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>ID</th><th>Name</th><th>Group</th><th>College</th><th>Time Batches</th><th>Status</th><th>Due</th><th></th></tr></thead>
+            <thead><tr><th>ID</th><th>Name</th><th>Group</th><th>College</th><th>Batch Time</th><th>Status</th><th>Due</th><th></th></tr></thead>
             <tbody id="monthViewBody"></tbody>
           </table>
         </div>
@@ -255,7 +255,7 @@
       </div>
 
       <div class="card">
-        <h2>Subjects</h2>
+        <h2>Subject</h2>
         <div id="subjectList"></div>
         <div class="form-row" style="margin-top:.7rem">
           <div class="form-group"><input type="text" id="newSubject" placeholder="New subject" /></div>
@@ -273,8 +273,8 @@
       </div>
 
       <div class="card">
-        <h2>Time Batches — <span id="yearLabel4">2027</span> (Subject-wise)</h2>
-        <div class="info-box">Each subject has its own time batches for this HSC year.</div>
+        <h2>Batch Time — <span id="yearLabel4">2027</span> (Subject-wise)</h2>
+        <div class="info-box">Each subject has its own batch time for this HSC year.</div>
         <div id="batchListBySubject"></div>
       </div>
 
